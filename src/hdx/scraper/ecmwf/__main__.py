@@ -14,7 +14,7 @@ from hdx.facades.infer_arguments import facade
 from hdx.utilities.downloader import Download
 from hdx.utilities.path import (
     script_dir_plus_file,
-    wheretostart_tempdir_batch,
+    temp_dir_batch,
 )
 from hdx.utilities.retriever import Retrieve
 
@@ -43,9 +43,9 @@ def main(
     """
     logger.info(f"##### {_LOOKUP} version {__version__} ####")
     configuration = Configuration.read()
-    User.check_current_user_write_access("")
+    User.check_current_user_write_access("hdx")
 
-    with wheretostart_tempdir_batch(folder=_LOOKUP) as info:
+    with temp_dir_batch(folder=_LOOKUP) as info:
         tempdir = info["folder"]
         with Download() as downloader:
             retriever = Retrieve(
@@ -57,23 +57,28 @@ def main(
                 use_saved=use_saved,
             )
             pipeline = Pipeline(configuration, retriever, tempdir)
-            #
-            # Steps to generate dataset
-            #
-            dataset = pipeline.generate_dataset()
-            if dataset:
-                dataset.update_from_yaml(
-                    script_dir_plus_file(
-                        join("config", "hdx_dataset_static.yaml"), main
+            countries = pipeline.download_global_boundaries()
+            updated = pipeline.download_rasters()
+            if not updated:
+                logger.info("Data has not been updated")
+                return
+
+            for country in countries:
+                pipeline.process_data()
+                dataset = pipeline.generate_dataset(country)
+                if dataset:
+                    dataset.update_from_yaml(
+                        script_dir_plus_file(
+                            join("config", "hdx_dataset_static.yaml"), main
+                        )
                     )
-                )
-                dataset.create_in_hdx(
-                    remove_additional_resources=True,
-                    match_resource_order=False,
-                    hxl_update=False,
-                    updated_by_script=_UPDATED_BY_SCRIPT,
-                    batch=info["batch"],
-                )
+                    dataset.create_in_hdx(
+                        remove_additional_resources=True,
+                        match_resource_order=False,
+                        hxl_update=False,
+                        updated_by_script=_UPDATED_BY_SCRIPT,
+                        batch=info["batch"],
+                    )
 
 
 if __name__ == "__main__":
