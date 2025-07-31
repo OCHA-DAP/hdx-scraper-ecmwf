@@ -28,7 +28,7 @@ jobs:
         HDX_KEY: ${{ secrets.HDX_BOT_SCRAPERS_API_TOKEN }}
         PREPREFIX: ${{ vars.HDX_USER_AGENT_PREPREFIX }}
         USER_AGENT: ${{ vars.USER_AGENT }}
-        EXTRA_PARAMS: ${{ vars.EXTRA_PARAMS }}
+        CDS_KEY: ${{ secrets.CDS_KEY }}
       run: |
         python -m hdx.scraper.ecmwf
     - name: Send mail

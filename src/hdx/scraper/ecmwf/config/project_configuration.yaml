@@ -1,2 +1,6 @@
 # Collector specific configuration
 global_boundaries: "https://cod-data.fieldmaps.io/gdb/level-3.gdb.zip"
+
+cds_url: "https://cds.climate.copernicus.eu/api"
+
+min_year: 2017

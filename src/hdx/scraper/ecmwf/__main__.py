@@ -6,11 +6,13 @@ script then creates in HDX.
 """
 
 import logging
+from os import getenv
 from os.path import expanduser, join
 
 from hdx.api.configuration import Configuration
 from hdx.data.user import User
 from hdx.facades.infer_arguments import facade
+from hdx.utilities.dateparse import now_utc
 from hdx.utilities.downloader import Download
 from hdx.utilities.path import (
     script_dir_plus_file,
@@ -26,6 +28,7 @@ logger = logging.getLogger(__name__)
 _LOOKUP = "hdx-scraper-ecmwf"
 _SAVED_DATA_DIR = "saved_data"  # Keep in repo to avoid deletion in /tmp
 _UPDATED_BY_SCRIPT = "HDX Scraper: ECMWF"
+_FORCE_REFRESH = False
 
 
 def main(
@@ -58,7 +61,9 @@ def main(
             )
             pipeline = Pipeline(configuration, retriever, tempdir)
             countries = pipeline.download_global_boundaries()
-            updated = pipeline.download_rasters()
+            updated = pipeline.download_rasters(
+                cds_key=getenv("CDS_KEY"), today=now_utc(), force_refresh=_FORCE_REFRESH
+            )
             if not updated:
                 logger.info("Data has not been updated")
                 return

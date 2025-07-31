@@ -2,10 +2,12 @@
 """Ecmwf scraper"""
 
 import logging
-from os.path import basename, join
-from typing import Dict, Optional
+from datetime import datetime
+from os.path import basename, exists, join
+from typing import Dict, List, Optional
 from zipfile import ZipFile
 
+import cdsapi
 from geopandas import list_layers, read_file
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
@@ -22,6 +24,7 @@ class Pipeline:
         self._retriever = retriever
         self._tempdir = tempdir
         self.global_boundaries = None
+        self.grib_data = []
 
     def download_global_boundaries(self) -> Dict:
         zip_file_path = self._retriever.download_file(
@@ -54,8 +57,44 @@ class Pipeline:
             iso_codes[code] = [iso_code, country_name]
         return iso_codes
 
-    def download_rasters(self):
-        return
+    def download_rasters(
+        self, cds_key: str, today: datetime, force_refresh: bool = False
+    ) -> bool:
+        existing_data = _get_uploaded_data(force_refresh)
+        if self._retriever.save or self._retriever.use_saved:
+            root_dir = self._retriever.saved_dir
+        else:
+            root_dir = self._tempdir
+        dataset = "seasonal-monthly-single-levels"
+
+        for year in range(self._configuration["min_year"], today.year + 1):
+            for month in range(1, 13):
+                if year == today.year and month > today.month:
+                    continue
+                str_month = str(month).zfill(2)
+                if f"{year}_{str_month}" in existing_data:
+                    continue
+                file_name = f"{dataset}-{year}-{month}.grib"
+                filepath = join(root_dir, file_name)
+                request = {
+                    "originating_centre": "ecmwf",
+                    "system": "51",
+                    "variable": ["total_precipitation"],
+                    "product_type": ["ensemble_mean"],
+                    "year": str(year),
+                    "month": str_month,
+                    "leadtime_month": ["1", "2", "3", "4", "5", "6"],
+                    "data_format": "grib",
+                }
+                if self._retriever.save and exists(filepath):
+                    self.grib_data.append(filepath)
+                    continue
+                client = cdsapi.Client(url=self._configuration["cds_url"], key=cds_key)
+                client.retrieve(dataset, request, filepath)
+                self.grib_data.append(filepath)
+        if len(self.grib_data) > 0:
+            return True
+        return False
 
     def generate_dataset(self) -> Optional[Dataset]:
         # To be generated
@@ -86,3 +125,16 @@ class Pipeline:
         # Add resources here
 
         return dataset
+
+
+def _get_uploaded_data(force_refresh: bool) -> List:
+    uploaded_data = []
+    if force_refresh:
+        return uploaded_data
+    dataset = Dataset.read_from_hdx("ecmwf-afg")
+    if not dataset:
+        return uploaded_data
+    resources = dataset.get_resources()
+    for resource in resources:
+        uploaded_data.append(resource["name"][-11:-4])
+    return uploaded_data
