@@ -8,11 +8,12 @@ from typing import Dict, List, Optional
 from zipfile import ZipFile
 
 import cdsapi
+from dateutil.relativedelta import relativedelta
 from geopandas import list_layers, read_file
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
-from hdx.data.hdxobject import HDXError
 from hdx.location.country import Country
+from hdx.utilities.dateparse import parse_date
 from hdx.utilities.retriever import Retrieve
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ class Pipeline:
                 country_name = Country.get_country_name_from_iso2(code)
             if not country_name:
                 logger.error(f"No country name found for {code}")
-            iso_codes[code] = [iso_code, country_name]
+            iso_codes[code] = {"iso3": iso_code, "name": country_name}
         return iso_codes
 
     def download_rasters(
@@ -96,15 +97,11 @@ class Pipeline:
             return True
         return False
 
-    def generate_dataset(self) -> Optional[Dataset]:
-        # To be generated
-        dataset_name = None
-        dataset_title = None
-        dataset_time_period = None
-        dataset_tags = None
-        dataset_country_iso3 = None
-
-        # Dataset info
+    def generate_dataset(self, country_info: Dict) -> Optional[Dataset]:
+        country_name = country_info["name"]
+        country_iso = country_info["iso3"]
+        dataset_name = f"ecmwf-{country_iso.lower()}"
+        dataset_title = f"{country_name}: ECMWF"
         dataset = Dataset(
             {
                 "name": dataset_name,
@@ -112,15 +109,14 @@ class Pipeline:
             }
         )
 
-        dataset.set_time_period(dataset_time_period)
-        dataset.add_tags(dataset_tags)
-        # Only if needed
-        dataset.set_subnational(True)
-        try:
-            dataset.add_country_location(dataset_country_iso3)
-        except HDXError:
-            logger.error(f"Couldn't find country {dataset_country_iso3}, skipping")
-            return
+        start_date = f"{self._configuration['min_year']}-01-01"
+        end_date = sorted(self.grib_data)[-1][-12:-5]
+        end_date = parse_date(f"{end_date.replace('_', '-')}-01")
+        end_date = end_date + relativedelta(day=31)
+        dataset.set_time_period(startdate=start_date, enddate=end_date)
+
+        dataset.add_tags(self._configuration["tags"])
+        dataset.add_country_location(country_iso)
 
         # Add resources here
 

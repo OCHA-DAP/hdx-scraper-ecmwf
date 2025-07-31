@@ -1,10 +1,12 @@
 license_id: cc-by
 methodology: Other
-caveats:
-dataset_source:
+methodology_other: Placeholder
+caveats: Placeholder
+dataset_source: Placeholder
 package_creator: HDX Data Systems Team
 private: False
-maintainer:
-owner_org:
-data_update_frequency:
-notes:
+maintainer: aa13de36-28c5-47a7-8d0b-6d7c754ba8c8
+owner_org: 47677055-92e2-4f68-bf1b-5d570f27e791
+data_update_frequency: 30
+notes: Placeholder
+subnational: "1"

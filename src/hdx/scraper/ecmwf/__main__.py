@@ -68,9 +68,9 @@ def main(
                 logger.info("Data has not been updated")
                 return
 
-            for country in countries:
-                pipeline.process_data()
-                dataset = pipeline.generate_dataset(country)
+            for country, country_info in countries.items():
+                pipeline.process_data(country)
+                dataset = pipeline.generate_dataset(country_info)
                 if dataset:
                     dataset.update_from_yaml(
                         script_dir_plus_file(
@@ -89,7 +89,7 @@ def main(
 if __name__ == "__main__":
     facade(
         main,
-        hdx_site="dev",
+        hdx_site="stage",
         user_agent_config_yaml=join(expanduser("~"), ".useragents.yaml"),
         user_agent_lookup=_LOOKUP,
         project_config_yaml=script_dir_plus_file(
