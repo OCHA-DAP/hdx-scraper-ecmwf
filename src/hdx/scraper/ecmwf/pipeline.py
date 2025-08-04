@@ -15,6 +15,7 @@ from hdx.data.dataset import Dataset
 from hdx.location.country import Country
 from hdx.utilities.dateparse import parse_date
 from hdx.utilities.retriever import Retrieve
+from requests.exceptions import HTTPError
 
 logger = logging.getLogger(__name__)
 
@@ -91,8 +92,11 @@ class Pipeline:
                     self.grib_data.append(filepath)
                     continue
                 client = cdsapi.Client(url=self._configuration["cds_url"], key=cds_key)
-                client.retrieve(dataset, request, filepath)
-                self.grib_data.append(filepath)
+                try:
+                    client.retrieve(dataset, request, filepath)
+                    self.grib_data.append(filepath)
+                except HTTPError:
+                    continue
         if len(self.grib_data) > 0:
             return True
         return False
