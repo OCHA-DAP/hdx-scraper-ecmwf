@@ -13,6 +13,7 @@ name = "hdx-scraper-ecmwf"
 requires-python = ">=3.13"
 dependencies = [
   "cdsapi",
+  "cfgrib",
   "geopandas",
   "hdx-python-api",
   "hdx-python-country",

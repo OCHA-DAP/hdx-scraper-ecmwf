@@ -4,10 +4,11 @@
 import logging
 from datetime import datetime
 from os.path import basename, exists, join
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from zipfile import ZipFile
 
 import cdsapi
+import xarray as xr
 from dateutil.relativedelta import relativedelta
 from geopandas import list_layers, read_file
 from hdx.api.configuration import Configuration
@@ -62,41 +63,47 @@ class Pipeline:
     def download_rasters(
         self, cds_key: str, today: datetime, force_refresh: bool = False
     ) -> bool:
-        existing_data = _get_uploaded_data(force_refresh)
+        existing_data, dataset_month = _get_uploaded_data(force_refresh)
         if self._retriever.save or self._retriever.use_saved:
             root_dir = self._retriever.saved_dir
         else:
             root_dir = self._tempdir
-        dataset = "seasonal-monthly-single-levels"
+        client = cdsapi.Client(url=self._configuration["cds_url"], key=cds_key)
+        dataset = "seasonal-postprocessed-single-levels"
+        variable = "total_precipitation_anomalous_rate_of_accumulation"
 
         for year in range(self._configuration["min_year"], today.year + 1):
-            for month in range(1, 13):
-                if year == today.year and month > today.month:
+            if year != today.year:
+                months = [str(m) for m in range(1, 13)]
+            else:
+                months = [str(m) for m in range(1, today.month + 1)]
+            file_name = f"{variable}_{year}.grib"
+            filepath = join(root_dir, file_name)
+
+            # check if data needs updating
+            if year in existing_data:
+                if year != today.year:
                     continue
-                str_month = str(month).zfill(2)
-                if f"{year}_{str_month}" in existing_data:
+                if dataset_month >= today.month:
                     continue
-                file_name = f"{dataset}-{year}-{month}.grib"
-                filepath = join(root_dir, file_name)
-                request = {
-                    "originating_centre": "ecmwf",
-                    "system": "51",
-                    "variable": ["total_precipitation"],
-                    "product_type": ["ensemble_mean"],
-                    "year": str(year),
-                    "month": str_month,
-                    "leadtime_month": ["1", "2", "3", "4", "5", "6"],
-                    "data_format": "grib",
-                }
-                if self._retriever.save and exists(filepath):
-                    self.grib_data.append(filepath)
-                    continue
-                client = cdsapi.Client(url=self._configuration["cds_url"], key=cds_key)
-                try:
-                    client.retrieve(dataset, request, filepath)
-                    self.grib_data.append(filepath)
-                except HTTPError:
-                    continue
+            request = {
+                "originating_centre": "ecmwf",
+                "system": "51",
+                "variable": ["total_precipitation_anomalous_rate_of_accumulation"],
+                "product_type": ["ensemble_mean"],
+                "year": str(year),
+                "month": months,
+                "leadtime_month": ["1", "2", "3", "4", "5", "6"],
+                "data_format": "grib",
+            }
+            if self._retriever.save and exists(filepath):
+                self.grib_data.append(filepath)
+                continue
+            try:
+                client.retrieve(dataset, request, filepath)
+                self.grib_data.append(filepath)
+            except HTTPError:
+                continue
         if len(self.grib_data) > 0:
             return True
         return False
@@ -127,14 +134,17 @@ class Pipeline:
         return dataset
 
 
-def _get_uploaded_data(force_refresh: bool) -> List:
+def _get_uploaded_data(force_refresh: bool) -> Tuple[List, int]:
     uploaded_data = []
+    end_month = 0
     if force_refresh:
-        return uploaded_data
+        return uploaded_data, end_month
     dataset = Dataset.read_from_hdx("ecmwf-afg")
     if not dataset:
-        return uploaded_data
+        return uploaded_data, end_month
+    end_date = dataset.get_time_period()["enddate"]
+    end_month = end_date.month
     resources = dataset.get_resources()
     for resource in resources:
-        uploaded_data.append(resource["name"][-11:-4])
-    return uploaded_data
+        uploaded_data.append(resource["name"][-8:-4])
+    return uploaded_data, end_month
