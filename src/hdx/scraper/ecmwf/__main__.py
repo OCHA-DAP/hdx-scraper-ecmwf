@@ -60,7 +60,7 @@ def main(
                 use_saved=use_saved,
             )
             pipeline = Pipeline(configuration, retriever, tempdir)
-            countries = pipeline.download_global_boundaries()
+            pipeline.download_global_boundaries()
             updated = pipeline.download_rasters(
                 cds_key=getenv("CDS_KEY"), today=now_utc(), force_refresh=_FORCE_REFRESH
             )
@@ -68,22 +68,18 @@ def main(
                 logger.info("Data has not been updated")
                 return
 
-            for country, country_info in countries.items():
-                pipeline.process_data(country)
-                dataset = pipeline.generate_dataset(country_info)
-                if dataset:
-                    dataset.update_from_yaml(
-                        script_dir_plus_file(
-                            join("config", "hdx_dataset_static.yaml"), main
-                        )
-                    )
-                    dataset.create_in_hdx(
-                        remove_additional_resources=True,
-                        match_resource_order=False,
-                        hxl_update=False,
-                        updated_by_script=_UPDATED_BY_SCRIPT,
-                        batch=info["batch"],
-                    )
+            processed_data = pipeline.process()
+            dataset = pipeline.generate_dataset(processed_data)
+            dataset.update_from_yaml(
+                script_dir_plus_file(join("config", "hdx_dataset_static.yaml"), main)
+            )
+            dataset.create_in_hdx(
+                remove_additional_resources=True,
+                match_resource_order=False,
+                hxl_update=False,
+                updated_by_script=_UPDATED_BY_SCRIPT,
+                batch=info["batch"],
+            )
 
 
 if __name__ == "__main__":

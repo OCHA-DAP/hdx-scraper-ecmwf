@@ -10,12 +10,12 @@ from zipfile import ZipFile
 import cdsapi
 import xarray as xr
 from dateutil.relativedelta import relativedelta
-from geopandas import list_layers, read_file
+from geopandas import read_file
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
-from hdx.location.country import Country
 from hdx.utilities.dateparse import parse_date
 from hdx.utilities.retriever import Retrieve
+from numpy import datetime_as_string
 from requests.exceptions import HTTPError
 
 logger = logging.getLogger(__name__)
@@ -26,10 +26,10 @@ class Pipeline:
         self._configuration = configuration
         self._retriever = retriever
         self._tempdir = tempdir
-        self.global_boundaries = None
+        self.global_boundaries = {}
         self.grib_data = []
 
-    def download_global_boundaries(self) -> Dict:
+    def download_global_boundaries(self) -> None:
         zip_file_path = self._retriever.download_file(
             self._configuration["global_boundaries"]
         )
@@ -38,27 +38,9 @@ class Pipeline:
         )
         with ZipFile(zip_file_path, "r") as z:
             z.extractall(gdb_file_path)
-        layers = list_layers(gdb_file_path)
-        layer_name = [layer for layer in layers.name if "1" in layer]
-        adm1_data = read_file(gdb_file_path, layer=layer_name[0])
-        self.global_boundaries = adm1_data
-        adm0_codes = list(set(adm1_data["adm0_pcode"]))
-        iso_codes = {}
-        for code in adm0_codes:
-            if len(code) > 3:
-                code = code[:2]
-            country_name = None
-            iso_code = None
-            if len(code) == 3:
-                iso_code = code
-                country_name = Country.get_country_name_from_iso3(code)
-            if len(code) == 2:
-                iso_code = Country.get_iso3_from_iso2(code)
-                country_name = Country.get_country_name_from_iso2(code)
-            if not country_name:
-                logger.error(f"No country name found for {code}")
-            iso_codes[code] = {"iso3": iso_code, "name": country_name}
-        return iso_codes
+        for admin_level in ["0", "1"]:
+            adm_data = read_file(gdb_file_path, layer=f"adm{admin_level}")
+            self.global_boundaries[admin_level] = adm_data
 
     def download_rasters(
         self, cds_key: str, today: datetime, force_refresh: bool = False
@@ -108,11 +90,34 @@ class Pipeline:
             return True
         return False
 
-    def generate_dataset(self, country_info: Dict) -> Optional[Dataset]:
-        country_name = country_info["name"]
-        country_iso = country_info["iso3"]
-        dataset_name = f"ecmwf-{country_iso.lower()}"
-        dataset_title = f"{country_name}: ECMWF"
+    def process(self) -> Dict:
+        processed_data = {}
+        for grib_data in self.grib_data:
+            dataset = xr.open_mfdataset(
+                grib_data,
+                engine="cfgrib",
+                drop_variables=["surface", "values"],
+                backend_kwargs={"time_dims": ("forecastMonth", "time")},
+            )
+            dataset = dataset.assign_coords(
+                longitude=(((dataset.longitude + 180) % 360) - 180)
+            ).sortby("longitude")
+            publish_dates = dataset.time.values
+            forecast_months = dataset.forecastMonth.values
+            for publish_date in publish_dates:
+                for forecast_month in forecast_months:
+                    data = dataset.sel(time=publish_date, forecastMonth=forecast_month)
+                    date_str = datetime_as_string(publish_date, unit="M").replace(
+                        "-", "_"
+                    )
+                    raster_name = f"anomalous_rate_of_accumulation_{date_str}_forecastmonth{forecast_month}.tif"
+                    data.rio.to_raster(join(self._tempdir, raster_name))
+
+        return processed_data
+
+    def generate_dataset(self, processed_data: Dict) -> Optional[Dataset]:
+        dataset_name = "ecmwf-anomalous-precipitation"
+        dataset_title = "ECMWF SEA5 Seasonal Forecasts -- Anomalous Precipitation"
         dataset = Dataset(
             {
                 "name": dataset_name,
@@ -127,7 +132,7 @@ class Pipeline:
         dataset.set_time_period(startdate=start_date, enddate=end_date)
 
         dataset.add_tags(self._configuration["tags"])
-        dataset.add_country_location(country_iso)
+        dataset.add_other_location("world")
 
         # Add resources here
 
@@ -135,11 +140,12 @@ class Pipeline:
 
 
 def _get_uploaded_data(force_refresh: bool) -> Tuple[List, int]:
+    # TODO: rewrite this to download csv resources and get dates from there
     uploaded_data = []
     end_month = 0
     if force_refresh:
         return uploaded_data, end_month
-    dataset = Dataset.read_from_hdx("ecmwf-afg")
+    dataset = Dataset.read_from_hdx("ecmwf-anomalous-precipitation")
     if not dataset:
         return uploaded_data, end_month
     end_date = dataset.get_time_period()["enddate"]

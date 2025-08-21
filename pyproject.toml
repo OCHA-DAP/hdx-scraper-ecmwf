@@ -14,10 +14,12 @@ requires-python = ">=3.13"
 dependencies = [
   "cdsapi",
   "cfgrib",
+  "dask",
   "geopandas",
   "hdx-python-api",
   "hdx-python-country",
   "hdx-python-utilities",
+  "rioxarray",
   "xarray",
 ]
 
