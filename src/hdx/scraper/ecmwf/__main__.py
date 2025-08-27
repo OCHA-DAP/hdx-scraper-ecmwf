@@ -68,8 +68,8 @@ def main(
                 logger.info("Data has not been updated")
                 return
 
-            processed_data = pipeline.process()
-            dataset = pipeline.generate_dataset(processed_data)
+            pipeline.process()
+            dataset = pipeline.generate_dataset()
             dataset.update_from_yaml(
                 script_dir_plus_file(join("config", "hdx_dataset_static.yaml"), main)
             )
