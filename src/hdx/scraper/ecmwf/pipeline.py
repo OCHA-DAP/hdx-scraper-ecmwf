@@ -17,7 +17,7 @@ from hdx.data.dataset import Dataset
 from hdx.location.country import Country
 from hdx.utilities.dateparse import parse_date
 from hdx.utilities.retriever import Retrieve
-from numpy import datetime_as_string
+from numpy import asarray, datetime_as_string, ndarray
 from pandas import DataFrame
 from rasterstats import zonal_stats
 from requests.exceptions import HTTPError
@@ -86,7 +86,7 @@ class Pipeline:
                 "leadtime_month": ["1", "2", "3", "4", "5", "6"],
                 "data_format": "grib",
             }
-            if self._retriever.save and exists(filepath):
+            if exists(filepath):
                 self.grib_data.append(filepath)
                 continue
             try:
@@ -110,8 +110,8 @@ class Pipeline:
                 longitude=(((dataset.longitude + 180) % 360) - 180)
             ).sortby("longitude")
             publish_dates = dataset.time.values
-            if not isinstance(publish_dates, list):
-                publish_dates = [publish_dates]
+            if not isinstance(publish_dates, ndarray):
+                publish_dates = asarray(publish_dates)
             forecast_months = dataset.forecastMonth.values
 
             # save to raster
