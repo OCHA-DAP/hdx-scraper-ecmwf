@@ -60,7 +60,6 @@ def main(
                 use_saved=use_saved,
             )
             pipeline = Pipeline(configuration, retriever, tempdir)
-            pipeline.download_global_boundaries()
             updated = pipeline.download_rasters(
                 cds_key=getenv("CDS_KEY"), today=now_utc(), force_refresh=_FORCE_REFRESH
             )
@@ -68,6 +67,7 @@ def main(
                 logger.info("Data has not been updated")
                 return
 
+            pipeline.download_global_boundaries()
             pipeline.process()
             dataset = pipeline.generate_dataset()
             dataset.update_from_yaml(
