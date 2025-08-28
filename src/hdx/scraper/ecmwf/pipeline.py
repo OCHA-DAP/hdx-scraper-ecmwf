@@ -4,7 +4,7 @@
 import logging
 from datetime import datetime
 from os.path import basename, exists, join
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 from zipfile import ZipFile
 
 import pandas as pd
@@ -32,6 +32,7 @@ class Pipeline:
         self._tempdir = tempdir
         self.global_boundaries = {}
         self.grib_data = []
+        self.dates = []
         self.processed_data = {
             "adm0": DataFrame(),
             "adm1": DataFrame(),
@@ -53,7 +54,7 @@ class Pipeline:
     def download_rasters(
         self, cds_key: str, today: datetime, force_refresh: bool = False
     ) -> bool:
-        existing_data, dataset_month = _get_uploaded_data(force_refresh)
+        self._get_uploaded_data(force_refresh)
         if self._retriever.save or self._retriever.use_saved:
             root_dir = self._retriever.saved_dir
         else:
@@ -63,19 +64,18 @@ class Pipeline:
         variable = "total_precipitation_anomalous_rate_of_accumulation"
 
         for year in range(self._configuration["min_year"], today.year + 1):
-            if year != today.year:
-                months = [str(m) for m in range(1, 13)]
-            else:
-                months = [str(m) for m in range(1, today.month + 1)]
+            # create list of missing data that needs to be added
+            months = []
+            end_month = 12 if year != today.year else today.month
+            for month in range(1, end_month + 1):
+                data_date = f"{year}-{str(month).zfill(2)}"
+                if data_date not in self.dates:
+                    months.append(str(month))
+            if len(months) == 0:
+                continue
+
             file_name = f"{variable}_{year}.grib"
             filepath = join(root_dir, file_name)
-
-            # check if data needs updating
-            if year in existing_data:
-                if year != today.year:
-                    continue
-                if dataset_month >= today.month:
-                    continue
             request = {
                 "originating_centre": "ecmwf",
                 "system": "51",
@@ -200,22 +200,29 @@ class Pipeline:
 
         return dataset
 
-
-def _get_uploaded_data(force_refresh: bool) -> Tuple[List, int]:
-    # TODO: rewrite this to download csv resources and get dates from there
-    uploaded_data = []
-    end_month = 0
-    if force_refresh:
-        return uploaded_data, end_month
-    dataset = Dataset.read_from_hdx("ecmwf-anomalous-precipitation")
-    if not dataset:
-        return uploaded_data, end_month
-    end_date = dataset.get_time_period()["enddate"]
-    end_month = end_date.month
-    resources = dataset.get_resources()
-    for resource in resources:
-        uploaded_data.append(resource["name"][-8:-4])
-    return uploaded_data, end_month
+    def _get_uploaded_data(self, force_refresh: bool) -> None:
+        if force_refresh:
+            return
+        dataset = Dataset.read_from_hdx("ecmwf-anomalous-precipitation")
+        if not dataset:
+            return
+        dates = []
+        resources = dataset.get_resources()
+        for resource in resources:
+            if resource.get_format() != "csv":
+                continue
+            file_path = self._retriever.download_file(resource["url"])
+            admin_level = resource["name"][-8:-4]  # TODO: check this
+            uploaded_data = pd.read_csv(file_path)
+            self.processed_data[admin_level] = uploaded_data
+            if len(dates) == 0:
+                dates = (
+                    uploaded_data["publish_year"]
+                    + "-"
+                    + uploaded_data["publish_month"].str.zfill(2)
+                )
+                dates = list(set(dates))
+                self.dates = sorted(dates)
 
 
 def _get_country_info(country_code: str) -> Tuple[str, str]:
