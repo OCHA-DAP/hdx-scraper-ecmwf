@@ -110,6 +110,8 @@ class Pipeline:
                 longitude=(((dataset.longitude + 180) % 360) - 180)
             ).sortby("longitude")
             publish_dates = dataset.time.values
+            if not isinstance(publish_dates, list):
+                publish_dates = [publish_dates]
             forecast_months = dataset.forecastMonth.values
 
             # save to raster
