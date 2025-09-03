@@ -222,9 +222,15 @@ class Pipeline:
             }
         )
 
-        start_date = f"{self._configuration['min_year']}-01-01"
-        end_date = sorted(self.grib_data)[-1][-12:-5]
-        end_date = parse_date(f"{end_date.replace('_', '-')}-01")
+        dates = [
+            str(y) + "-" + str(m).zfill(2)
+            for y, m in zip(
+                self.processed_data["adm0"]["publish_year"],
+                self.processed_data["adm0"]["publish_month"],
+            )
+        ]
+        start_date = parse_date(f"{min(dates)}-01")
+        end_date = parse_date(f"{max(dates)}-01")
         end_date = end_date + relativedelta(day=31)
         dataset.set_time_period(startdate=start_date, enddate=end_date)
 
@@ -253,11 +259,12 @@ class Pipeline:
             uploaded_data = pd.read_csv(file_path)
             self.processed_data[admin_level] = uploaded_data
             if len(dates) == 0:
-                dates = (
-                    uploaded_data["publish_year"]
-                    + "-"
-                    + uploaded_data["publish_month"].str.zfill(2)
-                )
+                dates = [
+                    str(y) + "-" + str(m).zfill(2)
+                    for y, m in zip(
+                        uploaded_data["publish_year"], uploaded_data["publish_month"]
+                    )
+                ]
                 dates = list(set(dates))
                 self.dates = sorted(dates)
 
