@@ -74,13 +74,13 @@ class TestPipeline:
                 assert resources == [
                     {
                         "name": "anomalous_precipitation_adm0.csv",
-                        "description": "",
+                        "description": "Summarized anomalous precipitation data at adm0 from 2025-01-01 to 2025-03-31",
                         "p_coded": True,
                         "format": "csv",
                     },
                     {
                         "name": "anomalous_precipitation_adm1.csv",
-                        "description": "",
+                        "description": "Summarized anomalous precipitation data at adm1 from 2025-01-01 to 2025-03-31",
                         "p_coded": True,
                         "format": "csv",
                     },

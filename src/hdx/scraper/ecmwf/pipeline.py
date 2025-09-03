@@ -16,7 +16,7 @@ from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.data.resource import Resource
 from hdx.location.country import Country
-from hdx.utilities.dateparse import parse_date
+from hdx.utilities.dateparse import iso_string_from_datetime, parse_date
 from hdx.utilities.retriever import Retrieve
 from numpy import asarray, datetime_as_string, ndarray
 from pandas import DataFrame
@@ -282,9 +282,10 @@ class Pipeline:
             processed_data.sort_values(by=sort_fields, inplace=True)
 
             filename = f"anomalous_precipitation_adm{admin_level}.csv"
+            description = f"Summarized anomalous precipitation data at adm{admin_level} from {iso_string_from_datetime(start_date)} to {iso_string_from_datetime(end_date)}"
             resourcedata = {
                 "name": filename,
-                "description": "",
+                "description": description,
                 "p_coded": True,
             }
             dataset.generate_resource_from_iterable(
