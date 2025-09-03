@@ -64,7 +64,7 @@ class TestPipeline:
                     "package_creator": "HDX Data Systems Team",
                     "private": False,
                     "maintainer": "aa13de36-28c5-47a7-8d0b-6d7c754ba8c8",
-                    "owner_org": "47677055-92e2-4f68-bf1b-5d570f27e791",
+                    "owner_org": "hdx",
                     "data_update_frequency": 30,
                     "notes": "Placeholder",
                     "subnational": "1",
