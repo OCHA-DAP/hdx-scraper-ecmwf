@@ -54,6 +54,10 @@ class TestPipeline:
                             "name": "environment",
                             "vocabulary_id": "b891512e-9516-4bf5-962a-7a289772a2a1",
                         },
+                        {
+                            "name": "forecasting",
+                            "vocabulary_id": "b891512e-9516-4bf5-962a-7a289772a2a1",
+                        },
                     ],
                     "groups": [{"name": "world"}],
                     "license_id": "cc-by",

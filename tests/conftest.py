@@ -64,6 +64,7 @@ def configuration(config_dir):
             for tag in (
                 "climate-weather",
                 "environment",
+                "forecasting",
             )
         ],
         "id": "b891512e-9516-4bf5-962a-7a289772a2a1",
