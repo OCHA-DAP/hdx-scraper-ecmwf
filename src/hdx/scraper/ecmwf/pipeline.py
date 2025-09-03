@@ -116,6 +116,10 @@ class Pipeline:
 
             # save to raster
             for publish_date in publish_dates:
+                processed_data = {
+                    "adm0": DataFrame(),
+                    "adm1": DataFrame(),
+                }
                 year = datetime_as_string(publish_date, unit="Y")
                 month = datetime_as_string(publish_date, unit="M")[-2:]
                 for forecast_month in forecast_months:
@@ -147,34 +151,65 @@ class Pipeline:
                         results_zs = pd.DataFrame.from_dict(results_zs).join(adm_data)[
                             fields
                         ]
-
-                        # add admin 0 fields
-                        iso_codes = {}
-                        country_names = {}
-                        country_codes = list(set(results_zs["adm0_pcode"]))
-                        for country_code in country_codes:
-                            iso_code, country_name = _get_country_info(country_code)
-                            iso_codes[country_code] = iso_code
-                            country_names[country_code] = country_name
-                        results_zs["iso_code"] = results_zs["adm0_pcode"].map(iso_codes)
-                        results_zs["adm0_name"] = results_zs["adm0_pcode"].map(
-                            country_names
+                        results_zs = results_zs.rename(
+                            columns={
+                                "mean": f"mean_leadtime{forecast_month}",
+                                "median": f"median_leadtime{forecast_month}",
+                            }
                         )
-                        results_zs.drop("adm0_pcode", axis=1, inplace=True)
 
-                        # add other needed fields
-                        results_zs["admin_level"] = admin_level
-                        results_zs["publish_year"] = int(year)
-                        results_zs["publish_month"] = int(month)
-                        results_zs["leadtime_month"] = forecast_month
-
-                        if len(self.processed_data[f"adm{admin_level}"]) == 0:
-                            self.processed_data[f"adm{admin_level}"] = results_zs
+                        # add to processed data dataframe
+                        if len(processed_data[f"adm{admin_level}"]) == 0:
+                            processed_data[f"adm{admin_level}"] = results_zs
                         else:
-                            self.processed_data[f"adm{admin_level}"] = pd.concat(
-                                [self.processed_data[f"adm{admin_level}"], results_zs],
-                                ignore_index=True,
+                            pcode_fields = [
+                                f"adm{level}_pcode"
+                                for level in range(0, int(admin_level) + 1)
+                            ]
+                            subset_fields = [
+                                f"mean_leadtime{forecast_month}",
+                                f"median_leadtime{forecast_month}",
+                            ] + pcode_fields
+                            processed_data[f"adm{admin_level}"] = pd.merge(
+                                processed_data[f"adm{admin_level}"],
+                                results_zs[subset_fields],
+                                how="outer",
+                                on=pcode_fields,
                             )
+
+                for admin_level in ["0", "1"]:
+                    processed_data_adm = processed_data[f"adm{admin_level}"]
+                    # add admin 0 fields
+                    iso_codes = {}
+                    country_names = {}
+                    country_codes = list(set(processed_data_adm["adm0_pcode"]))
+                    for country_code in country_codes:
+                        iso_code, country_name = _get_country_info(country_code)
+                        iso_codes[country_code] = iso_code
+                        country_names[country_code] = country_name
+                    processed_data_adm["iso_code"] = processed_data_adm[
+                        "adm0_pcode"
+                    ].map(iso_codes)
+                    processed_data_adm["adm0_name"] = processed_data_adm[
+                        "adm0_pcode"
+                    ].map(country_names)
+                    processed_data_adm.drop("adm0_pcode", axis=1, inplace=True)
+
+                    # add other needed fields
+                    processed_data_adm["admin_level"] = admin_level
+                    processed_data_adm["publish_year"] = int(year)
+                    processed_data_adm["publish_month"] = int(month)
+
+                    if len(self.processed_data[f"adm{admin_level}"]) == 0:
+                        self.processed_data[f"adm{admin_level}"] = processed_data_adm
+                    else:
+                        self.processed_data[f"adm{admin_level}"] = pd.concat(
+                            [
+                                self.processed_data[f"adm{admin_level}"],
+                                processed_data_adm,
+                            ],
+                            ignore_index=True,
+                        )
         return
 
     def generate_dataset(self) -> Optional[Dataset]:
