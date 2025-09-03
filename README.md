@@ -3,7 +3,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/OCHA-DAP/hdx-scraper-ecmwf/badge.svg?branch=main&ts=1)](https://coveralls.io/github/OCHA-DAP/hdx-scraper-ecmwf?branch=main)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-This script ...
+This script downloads data from the [Climate Data Store](https://cds.climate.copernicus.eu/), converts the GRIB files to GeoTIFF, performs admin 0 and 1 zonal statistics, and uploads datasets to HDX. It will check what data is mising from the current dataset on HDX before downloading and processing data as the full suite of data is very large.
 
 ## Development
 
@@ -17,7 +17,7 @@ environment such as ``venv``:
     source venv/bin/activate
 ```
 
-In your virtual environment, install all packages for development by running:
+You will need to have GDAL set up in your virtual environment. Once that is added, install all packages for development by running:
 
 ```shell
     pip install -r requirements.txt
