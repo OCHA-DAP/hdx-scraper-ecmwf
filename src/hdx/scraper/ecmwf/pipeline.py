@@ -14,6 +14,7 @@ from dateutil.relativedelta import relativedelta
 from geopandas import read_file
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
+from hdx.data.resource import Resource
 from hdx.location.country import Country
 from hdx.utilities.dateparse import parse_date
 from hdx.utilities.retriever import Retrieve
@@ -32,11 +33,12 @@ class Pipeline:
         self._tempdir = tempdir
         self.global_boundaries = {}
         self.grib_data = []
-        self.dates = []
+        self.existing_dates = []
         self.processed_data = {
             "adm0": DataFrame(),
             "adm1": DataFrame(),
         }
+        self.raster_data = []
 
     def download_global_boundaries(self) -> None:
         zip_file_path = self._retriever.download_file(
@@ -69,7 +71,7 @@ class Pipeline:
             end_month = 12 if year != today.year else today.month
             for month in range(1, end_month + 1):
                 data_date = f"{year}-{str(month).zfill(2)}"
-                if data_date not in self.dates:
+                if data_date not in self.existing_dates:
                     months.append(str(month))
             if len(months) == 0:
                 continue
@@ -127,6 +129,7 @@ class Pipeline:
                     raster_name = f"anomalous_rate_of_accumulation_{year}_{month}_forecastmonth{forecast_month}.tif"
                     out_tif = join(self._tempdir, raster_name)
                     data.rio.to_raster(out_tif)
+                    self.raster_data.append(out_tif)
 
                     # calculate statistics
                     for admin_level in ["0", "1"]:
@@ -153,8 +156,8 @@ class Pipeline:
                         ]
                         results_zs = results_zs.rename(
                             columns={
-                                "mean": f"mean_leadtime{forecast_month}",
-                                "median": f"median_leadtime{forecast_month}",
+                                "mean": f"mean_forecast{forecast_month}",
+                                "median": f"median_forecast{forecast_month}",
                             }
                         )
 
@@ -167,8 +170,8 @@ class Pipeline:
                                 for level in range(0, int(admin_level) + 1)
                             ]
                             subset_fields = [
-                                f"mean_leadtime{forecast_month}",
-                                f"median_leadtime{forecast_month}",
+                                f"mean_forecast{forecast_month}",
+                                f"median_forecast{forecast_month}",
                             ] + pcode_fields
                             processed_data[f"adm{admin_level}"] = pd.merge(
                                 processed_data[f"adm{admin_level}"],
@@ -214,7 +217,7 @@ class Pipeline:
 
     def generate_dataset(self) -> Optional[Dataset]:
         dataset_name = "ecmwf-anomalous-precipitation"
-        dataset_title = "ECMWF SEA5 Seasonal Forecasts -- Anomalous Precipitation"
+        dataset_title = "ECMWF SEA5 Seasonal Forecasts - Anomalous Precipitation"
         dataset = Dataset(
             {
                 "name": dataset_name,
@@ -237,9 +240,64 @@ class Pipeline:
         dataset.add_tags(self._configuration["tags"])
         dataset.add_other_location("world")
 
-        # Add resources here
-        # Zip latest rasters
-        # save csvs
+        # Add csv resources
+        for admin_level in ["0", "1"]:
+            subset_fields = ["iso_code", "adm0_name"]
+            sort_fields = ["iso_code"]
+            if admin_level == "1":
+                subset_fields = subset_fields + ["adm1_pcode", "adm1_name"]
+                sort_fields.append("adm1_pcode")
+            subset_fields = subset_fields + [
+                "admin_level",
+                "publish_year",
+                "publish_month",
+            ]
+            sort_fields = sort_fields + ["publish_year", "publish_month"]
+            for forecast in range(1, 7):
+                subset_fields = subset_fields + [
+                    f"mean_forecast{forecast}",
+                    f"median_forecast{forecast}",
+                ]
+            processed_data = self.processed_data[f"adm{admin_level}"][subset_fields]
+            processed_data.sort_values(by=sort_fields, inplace=True)
+
+            filename = f"anomalous_precipitation_adm{admin_level}.csv"
+            resourcedata = {
+                "name": filename,
+                "description": "",
+                "p_coded": True,
+            }
+            dataset.generate_resource_from_iterable(
+                headers=list(processed_data.columns),
+                iterable=processed_data.to_dict(orient="records"),
+                hxltags={},
+                folder=self._tempdir,
+                filename=filename,
+                resourcedata=resourcedata,
+                encoding="utf-8-sig",
+            )
+
+        # Add zipped raster resource
+        raster_dates = [
+            "_".join(basename(raster).split("_")[4:6]) for raster in self.raster_data
+        ]
+        latest_date = max(raster_dates)
+        raster_paths = [
+            raster for raster in self.raster_data if latest_date in basename(raster)
+        ]
+        latest_zip = join(self._tempdir, "latest_anomalous_precipitation_geotiff.zip")
+        with ZipFile(latest_zip, "w") as z:
+            for raster_path in raster_paths:
+                z.write(raster_path, basename(raster_path))
+        resource = Resource(
+            {
+                "name": basename(latest_zip),
+                "description": f"Latest anomalous precipitation data from {latest_date.replace('_', '-')}",
+            }
+        )
+        resource.set_format("GeoTIFF")
+        resource.set_file_to_upload(latest_zip)
+        dataset.add_update_resource(resource)
 
         return dataset
 
@@ -255,7 +313,7 @@ class Pipeline:
             if resource.get_format() != "csv":
                 continue
             file_path = self._retriever.download_file(resource["url"])
-            admin_level = resource["name"][-8:-4]  # TODO: check this
+            admin_level = resource["name"][-8:-4]
             uploaded_data = pd.read_csv(file_path)
             self.processed_data[admin_level] = uploaded_data
             if len(dates) == 0:
@@ -266,7 +324,7 @@ class Pipeline:
                     )
                 ]
                 dates = list(set(dates))
-                self.dates = sorted(dates)
+                self.existing_dates = sorted(dates)
 
 
 def _get_country_info(country_code: str) -> Tuple[str, str]:
