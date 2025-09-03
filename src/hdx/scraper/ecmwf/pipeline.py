@@ -53,7 +53,7 @@ class Pipeline:
             adm_data = read_file(gdb_file_path, layer=f"adm{admin_level}")
             self.global_boundaries[admin_level] = adm_data
 
-    def download_rasters(
+    def download_cds_data(
         self, cds_key: str, today: datetime, force_refresh: bool = False
     ) -> bool:
         self._get_uploaded_data(force_refresh)
@@ -88,17 +88,37 @@ class Pipeline:
                 "leadtime_month": ["1", "2", "3", "4", "5", "6"],
                 "data_format": "grib",
             }
-            if exists(filepath):
-                self.grib_data.append(filepath)
-                continue
-            try:
-                client.retrieve(dataset, request, filepath)
-                self.grib_data.append(filepath)
-            except HTTPError:
-                continue
+            success = self.download_grib(client, request, dataset, filepath)
+            if year == today.year and not success:
+                logger.info("Download failed, trying without current month")
+                request = {
+                    "originating_centre": "ecmwf",
+                    "system": "51",
+                    "variable": ["total_precipitation_anomalous_rate_of_accumulation"],
+                    "product_type": ["ensemble_mean"],
+                    "year": str(year),
+                    "month": months[:-1],
+                    "leadtime_month": ["1", "2", "3", "4", "5", "6"],
+                    "data_format": "grib",
+                }
+                success = self.download_grib(client, request, dataset, filepath)
+
         if len(self.grib_data) > 0:
             return True
         return False
+
+    def download_grib(
+        self, client: Client, request: dict, dataset: str, filepath: str
+    ) -> bool:
+        if exists(filepath):
+            self.grib_data.append(filepath)
+            return True
+        try:
+            client.retrieve(dataset, request, filepath)
+            self.grib_data.append(filepath)
+        except HTTPError:
+            return False
+        return True
 
     def process(self) -> None:
         for grib_data in self.grib_data:

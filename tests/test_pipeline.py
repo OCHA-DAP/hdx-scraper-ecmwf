@@ -30,7 +30,7 @@ class TestPipeline:
                 configuration["min_year"] = 2025
                 pipeline = Pipeline(configuration, retriever, tempdir)
                 today = datetime(2025, 3, 15)
-                updated = pipeline.download_rasters(
+                updated = pipeline.download_cds_data(
                     cds_key="", today=today, force_refresh=False
                 )
                 assert updated is True

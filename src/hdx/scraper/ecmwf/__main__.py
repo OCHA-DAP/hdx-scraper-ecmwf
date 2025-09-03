@@ -60,7 +60,7 @@ def main(
                 use_saved=use_saved,
             )
             pipeline = Pipeline(configuration, retriever, tempdir)
-            updated = pipeline.download_rasters(
+            updated = pipeline.download_cds_data(
                 cds_key=getenv("CDS_KEY"), today=now_utc(), force_refresh=_FORCE_REFRESH
             )
             if not updated:
