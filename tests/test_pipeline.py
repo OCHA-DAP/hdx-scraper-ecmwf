@@ -41,12 +41,61 @@ class TestPipeline:
                 dataset.update_from_yaml(
                     path=join(config_dir, "hdx_dataset_static.yaml")
                 )
-                assert dataset == {}
+                assert dataset == {
+                    "name": "ecmwf-anomalous-precipitation",
+                    "title": "ECMWF SEA5 Seasonal Forecasts - Anomalous Precipitation",
+                    "dataset_date": "[2025-01-01T00:00:00 TO 2025-03-31T23:59:59]",
+                    "tags": [
+                        {
+                            "name": "climate-weather",
+                            "vocabulary_id": "b891512e-9516-4bf5-962a-7a289772a2a1",
+                        },
+                        {
+                            "name": "environment",
+                            "vocabulary_id": "b891512e-9516-4bf5-962a-7a289772a2a1",
+                        },
+                    ],
+                    "groups": [{"name": "world"}],
+                    "license_id": "cc-by",
+                    "methodology": "Other",
+                    "methodology_other": "Placeholder",
+                    "caveats": "Placeholder",
+                    "dataset_source": "Climate Data Store",
+                    "package_creator": "HDX Data Systems Team",
+                    "private": False,
+                    "maintainer": "aa13de36-28c5-47a7-8d0b-6d7c754ba8c8",
+                    "owner_org": "47677055-92e2-4f68-bf1b-5d570f27e791",
+                    "data_update_frequency": 30,
+                    "notes": "Placeholder",
+                    "subnational": "1",
+                }
 
                 resources = dataset.get_resources()
-                assert resources == [{}]
+                assert resources == [
+                    {
+                        "name": "anomalous_precipitation_adm0.csv",
+                        "description": "",
+                        "p_coded": True,
+                        "format": "csv",
+                    },
+                    {
+                        "name": "anomalous_precipitation_adm1.csv",
+                        "description": "",
+                        "p_coded": True,
+                        "format": "csv",
+                    },
+                    {
+                        "name": "latest_anomalous_precipitation_geotiff.zip",
+                        "description": "Latest anomalous precipitation data from 2025-03",
+                        "format": "geotiff",
+                    },
+                ]
 
                 assert_files_same(
-                    join(fixtures_dir, ""),
-                    join(tempdir, ""),
+                    join(fixtures_dir, "anomalous_precipitation_adm0.csv"),
+                    join(tempdir, "anomalous_precipitation_adm0.csv"),
+                )
+                assert_files_same(
+                    join(fixtures_dir, "anomalous_precipitation_adm1.csv"),
+                    join(tempdir, "anomalous_precipitation_adm1.csv"),
                 )
