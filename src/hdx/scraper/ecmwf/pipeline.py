@@ -139,6 +139,7 @@ class Pipeline:
 
             # save to raster
             for publish_date in publish_dates:
+                logger.info(f"Processing publish date: {publish_date}")
                 year = datetime_as_string(publish_date, unit="Y")
                 month = datetime_as_string(publish_date, unit="M")[-2:]
                 for forecast_month in forecast_months:

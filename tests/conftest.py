@@ -27,9 +27,6 @@ def config_dir(fixtures_dir):
 @pytest.fixture(scope="function")
 def read_dataset(monkeypatch):
     def read_from_hdx(dataset_name):
-        # TODO: take this out once we have a dataset to download for testing
-        if dataset_name == "ecmwf-anomalous-precipitation":
-            return None
         return Dataset.load_from_json(
             join(
                 "tests",

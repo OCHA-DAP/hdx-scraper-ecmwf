@@ -27,7 +27,7 @@ class TestPipeline:
                     save=False,
                     use_saved=True,
                 )
-                configuration["min_year"] = 2025
+                configuration["min_year"] = 2024
                 pipeline = Pipeline(configuration, retriever, tempdir)
                 today = datetime(2025, 3, 15)
                 updated = pipeline.download_cds_data(
@@ -44,7 +44,7 @@ class TestPipeline:
                 assert dataset == {
                     "name": "ecmwf-anomalous-precipitation",
                     "title": "ECMWF SEA5 Seasonal Forecasts - Anomalous Precipitation",
-                    "dataset_date": "[2025-01-01T00:00:00 TO 2025-03-31T23:59:59]",
+                    "dataset_date": "[2024-01-01T00:00:00 TO 2025-03-31T23:59:59]",
                     "tags": [
                         {
                             "name": "climate-weather",
@@ -78,13 +78,13 @@ class TestPipeline:
                 assert resources == [
                     {
                         "name": "anomalous_precipitation_adm0.csv",
-                        "description": "Summarized anomalous precipitation data at adm0 from 2025-01-01 to 2025-03-31",
+                        "description": "Summarized anomalous precipitation data at adm0 from 2024-01-01 to 2025-03-31",
                         "p_coded": True,
                         "format": "csv",
                     },
                     {
                         "name": "anomalous_precipitation_adm1.csv",
-                        "description": "Summarized anomalous precipitation data at adm1 from 2025-01-01 to 2025-03-31",
+                        "description": "Summarized anomalous precipitation data at adm1 from 2024-01-01 to 2025-03-31",
                         "p_coded": True,
                         "format": "csv",
                     },
