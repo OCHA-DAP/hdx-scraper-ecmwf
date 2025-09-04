@@ -95,7 +95,7 @@ fsspec==2025.9.0
     # via dask
 geopandas==1.1.1
     # via hdx-scraper-ecmwf (pyproject.toml)
-hdx-python-api==6.5.0
+hdx-python-api==6.5.1
     # via hdx-scraper-ecmwf (pyproject.toml)
 hdx-python-country==3.9.6
     # via
@@ -338,7 +338,7 @@ validators==0.35.0
     # via frictionless
 wheel==0.45.1
     # via libhxl
-xarray==2025.8.0
+xarray==2025.9.0
     # via
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   rioxarray

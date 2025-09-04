@@ -80,12 +80,13 @@ def main(
                 updated_by_script=_UPDATED_BY_SCRIPT,
                 batch=info["batch"],
             )
+            logger.info("Finished processing!")
 
 
 if __name__ == "__main__":
     facade(
         main,
-        hdx_site="stage",
+        hdx_site="feature",
         user_agent_config_yaml=join(expanduser("~"), ".useragents.yaml"),
         user_agent_lookup=_LOOKUP,
         project_config_yaml=script_dir_plus_file(

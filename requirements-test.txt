@@ -151,7 +151,7 @@ geopandas==1.1.1
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
-hdx-python-api==6.5.0
+hdx-python-api==6.5.1
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
@@ -341,7 +341,7 @@ pyproj==3.7.2
     #   -c requirements.txt
     #   geopandas
     #   rioxarray
-pytest==8.4.1
+pytest==8.4.2
     # via
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   pytest-cov
@@ -544,7 +544,7 @@ wheel==0.45.1
     # via
     #   -c requirements.txt
     #   libhxl
-xarray==2025.8.0
+xarray==2025.9.0
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
