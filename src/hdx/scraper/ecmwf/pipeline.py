@@ -7,6 +7,7 @@ from os.path import basename, exists, join
 from typing import Optional, Tuple
 from zipfile import ZipFile
 
+import numpy as np
 import pandas as pd
 import xarray as xr
 from cdsapi import Client
@@ -18,8 +19,6 @@ from hdx.data.resource import Resource
 from hdx.location.country import Country
 from hdx.utilities.dateparse import iso_string_from_datetime, parse_date
 from hdx.utilities.retriever import Retrieve
-from numpy import asarray, datetime_as_string, ndarray
-from pandas import DataFrame
 from rasterstats import zonal_stats
 from requests.exceptions import HTTPError
 
@@ -35,8 +34,8 @@ class Pipeline:
         self.grib_data = []
         self.existing_dates = []
         self.processed_data = {
-            "adm0": DataFrame(),
-            "adm1": DataFrame(),
+            "adm0": pd.DataFrame(),
+            "adm1": pd.DataFrame(),
         }
         self.raster_data = []
 
@@ -132,19 +131,19 @@ class Pipeline:
             dataset = dataset.assign_coords(
                 longitude=(((dataset.longitude + 180) % 360) - 180)
             ).sortby("longitude")
-            publish_dates = dataset.time.values
-            if not isinstance(publish_dates, ndarray):
-                publish_dates = asarray(publish_dates)
-            forecast_months = dataset.forecastMonth.values
+            issue_dates = dataset.time.values
+            if not isinstance(issue_dates, np.ndarray):
+                issue_dates = np.asarray(issue_dates)
+            leadtime_months = dataset.forecastMonth.values
 
             # save to raster
-            for publish_date in publish_dates:
-                logger.info(f"Processing publish date: {publish_date}")
-                year = datetime_as_string(publish_date, unit="Y")
-                month = datetime_as_string(publish_date, unit="M")[-2:]
-                for forecast_month in forecast_months:
-                    data = dataset.sel(time=publish_date, forecastMonth=forecast_month)
-                    raster_name = f"anomalous_rate_of_accumulation_{year}_{month}_forecastmonth{forecast_month}.tif"
+            for issue_date in issue_dates:
+                logger.info(f"Processing issue date: {issue_dates}")
+                year = np.datetime_as_string(issue_date, unit="Y")
+                month = np.datetime_as_string(issue_date, unit="M")[-2:]
+                for leadtime_month in leadtime_months:
+                    data = dataset.sel(time=issue_date, forecastMonth=leadtime_month)
+                    raster_name = f"anomalous_rate_of_accumulation_{year}_{month}_leadtime{int(leadtime_month) - 1}.tif"
                     out_tif = join(self._tempdir, raster_name)
                     data.rio.to_raster(out_tif)
                     self.raster_data.append(out_tif)
@@ -172,6 +171,13 @@ class Pipeline:
                         results_zs = pd.DataFrame.from_dict(results_zs).join(adm_data)[
                             fields
                         ]
+                        results_zs.rename(
+                            columns={
+                                "mean": "mean_anomaly",
+                                "median": "median_anomaly",
+                            },
+                            inplace=True,
+                        )
 
                         # add admin 0 fields
                         iso_codes = {}
@@ -189,9 +195,16 @@ class Pipeline:
 
                         # add other needed fields
                         results_zs["admin_level"] = admin_level
-                        results_zs["publish_year"] = int(year)
-                        results_zs["publish_month"] = int(month)
-                        results_zs["forecast_month"] = forecast_month
+                        results_zs["issue_year"] = int(year)
+                        results_zs["issue_month"] = int(month)
+                        results_zs["lead_time"] = int(leadtime_month) - 1
+                        end_month = int(month) + int(leadtime_month) - 1
+                        results_zs["valid_year"] = (
+                            int(year) if end_month <= 12 else int(year) + 1
+                        )
+                        results_zs["valid_month"] = (
+                            end_month if end_month <= 12 else end_month - 12
+                        )
 
                         # add to processed data dataframe
                         if len(self.processed_data[f"adm{admin_level}"]) == 0:
@@ -219,8 +232,8 @@ class Pipeline:
         dates = [
             str(y) + "-" + str(m).zfill(2)
             for y, m in zip(
-                self.processed_data["adm0"]["publish_year"],
-                self.processed_data["adm0"]["publish_month"],
+                self.processed_data["adm0"]["issue_year"],
+                self.processed_data["adm0"]["issue_month"],
             )
         ]
         start_date = parse_date(f"{min(dates)}-01")
@@ -238,17 +251,19 @@ class Pipeline:
                 fields = fields + ["adm1_pcode", "adm1_name"]
             fields = fields + [
                 "admin_level",
-                "publish_year",
-                "publish_month",
-                "forecast_month",
+                "issue_year",
+                "issue_month",
+                "lead_time",
+                "valid_year",
+                "valid_month",
             ]
             processed_data = self.processed_data[f"adm{admin_level}"][
-                fields + ["mean", "median"]
+                fields + ["mean_anomaly", "median_anomaly"]
             ]
             processed_data.sort_values(by=fields, inplace=True)
 
-            filename = f"anomalous_precipitation_adm{admin_level}.csv"
-            description = f"Summarized anomalous precipitation data at adm{admin_level} from {iso_string_from_datetime(start_date)} to {iso_string_from_datetime(end_date)}"
+            filename = f"forecast_precipitation_anomalies_adm{admin_level}.csv"
+            description = f"Summarized forecast precipitation anomalies data at adm{admin_level} from {iso_string_from_datetime(start_date)} to {iso_string_from_datetime(end_date)}"
             resourcedata = {
                 "name": filename,
                 "description": description,
@@ -272,14 +287,16 @@ class Pipeline:
         raster_paths = [
             raster for raster in self.raster_data if latest_date in basename(raster)
         ]
-        latest_zip = join(self._tempdir, "latest_anomalous_precipitation_geotiff.zip")
+        latest_zip = join(
+            self._tempdir, f"forecast_precipitation_anomalies_geotiff_{latest_date}.zip"
+        )
         with ZipFile(latest_zip, "w") as z:
             for raster_path in raster_paths:
                 z.write(raster_path, basename(raster_path))
         resource = Resource(
             {
                 "name": basename(latest_zip),
-                "description": f"Latest anomalous precipitation data from {latest_date.replace('_', '-')}",
+                "description": f"Latest forecast precipitation anomalies raster data from {latest_date.replace('_', '-')}",
             }
         )
         resource.set_format("GeoTIFF")
@@ -307,7 +324,7 @@ class Pipeline:
                 dates = [
                     str(y) + "-" + str(m).zfill(2)
                     for y, m in zip(
-                        uploaded_data["publish_year"], uploaded_data["publish_month"]
+                        uploaded_data["issue_year"], uploaded_data["issue_month"]
                     )
                 ]
                 dates = list(set(dates))

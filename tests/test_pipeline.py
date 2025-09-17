@@ -77,29 +77,29 @@ class TestPipeline:
                 resources = dataset.get_resources()
                 assert resources == [
                     {
-                        "name": "anomalous_precipitation_adm0.csv",
-                        "description": "Summarized anomalous precipitation data at adm0 from 2024-01-01 to 2025-03-31",
+                        "name": "forecast_precipitation_anomalies_adm0.csv",
+                        "description": "Summarized forecast precipitation anomalies data at adm0 from 2024-01-01 to 2025-03-31",
                         "p_coded": True,
                         "format": "csv",
                     },
                     {
-                        "name": "anomalous_precipitation_adm1.csv",
-                        "description": "Summarized anomalous precipitation data at adm1 from 2024-01-01 to 2025-03-31",
+                        "name": "forecast_precipitation_anomalies_adm1.csv",
+                        "description": "Summarized forecast precipitation anomalies data at adm1 from 2024-01-01 to 2025-03-31",
                         "p_coded": True,
                         "format": "csv",
                     },
                     {
-                        "name": "latest_anomalous_precipitation_geotiff.zip",
-                        "description": "Latest anomalous precipitation data from 2025-03",
+                        "name": "forecast_precipitation_anomalies_geotiff_2025_03.zip",
+                        "description": "Latest forecast precipitation anomalies raster data from 2025-03",
                         "format": "geotiff",
                     },
                 ]
 
                 assert_files_same(
-                    join(fixtures_dir, "anomalous_precipitation_adm0.csv"),
-                    join(tempdir, "anomalous_precipitation_adm0.csv"),
+                    join(fixtures_dir, "forecast_precipitation_anomalies_adm0.csv"),
+                    join(tempdir, "forecast_precipitation_anomalies_adm0.csv"),
                 )
                 assert_files_same(
-                    join(fixtures_dir, "anomalous_precipitation_adm1.csv"),
-                    join(tempdir, "anomalous_precipitation_adm1.csv"),
+                    join(fixtures_dir, "forecast_precipitation_anomalies_adm1.csv"),
+                    join(tempdir, "forecast_precipitation_anomalies_adm1.csv"),
                 )
