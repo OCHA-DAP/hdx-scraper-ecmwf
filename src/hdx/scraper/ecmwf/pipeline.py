@@ -2,6 +2,7 @@
 """ECMWF scraper"""
 
 import logging
+from calendar import monthrange
 from datetime import datetime
 from os.path import basename, exists, join
 from typing import Optional, Tuple
@@ -143,8 +144,14 @@ class Pipeline:
                 year = np.datetime_as_string(issue_date, unit="Y")
                 month = np.datetime_as_string(issue_date, unit="M")[-2:]
                 for leadtime_month in leadtime_months:
+                    # convert to accumulation
+                    valid_time = pd.to_datetime(issue_date) + relativedelta(
+                        months=leadtime_month - 1
+                    )
+                    numdays = monthrange(valid_time.year, valid_time.month)[1]
                     data = dataset.sel(time=issue_date, forecastMonth=leadtime_month)
-                    raster_name = f"anomalous_rate_of_accumulation_{year}_{month}_leadtime{int(leadtime_month) - 1}.tif"
+                    data = data * numdays * 24 * 60 * 60 * 1000
+                    raster_name = f"anomalous_accumulation_{year}_{month}_leadtime{int(leadtime_month) - 1}.tif"
                     out_tif = join(self._tempdir, raster_name)
                     data.rio.to_raster(out_tif)
                     self.raster_data.append(out_tif)
@@ -199,13 +206,8 @@ class Pipeline:
                         results_zs["issue_year"] = int(year)
                         results_zs["issue_month"] = int(month)
                         results_zs["lead_time"] = int(leadtime_month) - 1
-                        end_month = int(month) + int(leadtime_month) - 1
-                        results_zs["valid_year"] = (
-                            int(year) if end_month <= 12 else int(year) + 1
-                        )
-                        results_zs["valid_month"] = (
-                            end_month if end_month <= 12 else end_month - 12
-                        )
+                        results_zs["valid_year"] = int(valid_time.year)
+                        results_zs["valid_month"] = int(valid_time.month)
 
                         # add to processed data dataframe
                         if len(self.processed_data[f"adm{admin_level}"]) == 0:
@@ -282,7 +284,7 @@ class Pipeline:
 
         # Add zipped raster resource
         raster_dates = [
-            "_".join(basename(raster).split("_")[4:6]) for raster in self.raster_data
+            "_".join(basename(raster).split("_")[2:4]) for raster in self.raster_data
         ]
         latest_date = max(raster_dates)
         raster_paths = [

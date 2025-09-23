@@ -36,7 +36,7 @@ charset-normalizer==3.4.3
     # via requests
 ckanapi==4.8
     # via hdx-python-api
-click==8.2.1
+click==8.3.0
     # via
     #   cfgrib
     #   click-plugins
@@ -67,7 +67,7 @@ docopt==0.6.2
     # via
     #   ckanapi
     #   num2words
-docutils==0.22
+docutils==0.22.2
     # via defopt
 eccodes==2.43.0
     # via cfgrib
@@ -97,11 +97,11 @@ geopandas==1.1.1
     # via hdx-scraper-ecmwf (pyproject.toml)
 hdx-python-api==6.5.1
     # via hdx-scraper-ecmwf (pyproject.toml)
-hdx-python-country==3.9.6
+hdx-python-country==3.9.8
     # via
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   hdx-python-api
-hdx-python-utilities==3.9.1
+hdx-python-utilities==3.9.3
     # via
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   hdx-python-api
@@ -199,7 +199,7 @@ pygments==2.19.2
     # via rich
 pyogrio==0.11.1
     # via geopandas
-pyparsing==3.2.4
+pyparsing==3.2.5
     # via rasterio
 pyphonetics==0.5.3
     # via hdx-python-utilities
@@ -267,7 +267,7 @@ rpds-py==0.27.1
     #   referencing
 ruamel-yaml==0.18.15
     # via hdx-python-utilities
-ruamel-yaml-clib==0.2.12
+ruamel-yaml-clib==0.2.14
     # via ruamel-yaml
 setuptools==80.9.0
     # via ckanapi
@@ -311,7 +311,7 @@ tqdm==4.67.1
     #   multiurl
 typeguard==4.4.4
     # via inflect
-typer==0.17.4
+typer==0.19.2
     # via frictionless
 typing-extensions==4.15.0
     # via
