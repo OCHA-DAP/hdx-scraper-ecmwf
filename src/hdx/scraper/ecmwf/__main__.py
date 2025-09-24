@@ -59,16 +59,17 @@ def main(
                 save=save,
                 use_saved=use_saved,
             )
+            today = now_utc()
             pipeline = Pipeline(configuration, retriever, tempdir)
             updated = pipeline.download_cds_data(
-                cds_key=getenv("CDS_KEY"), today=now_utc(), force_refresh=_FORCE_REFRESH
+                cds_key=getenv("CDS_KEY"), today=today, force_refresh=_FORCE_REFRESH
             )
             if not updated:
                 logger.info("Data has not been updated")
                 return
 
             pipeline.download_global_boundaries()
-            pipeline.process()
+            pipeline.process(today)
             dataset = pipeline.generate_dataset()
             dataset.update_from_yaml(
                 script_dir_plus_file(join("config", "hdx_dataset_static.yaml"), main)

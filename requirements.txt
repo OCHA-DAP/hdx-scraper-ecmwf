@@ -271,7 +271,7 @@ ruamel-yaml-clib==0.2.14
     # via ruamel-yaml
 setuptools==80.9.0
     # via ckanapi
-shapely==2.1.1
+shapely==2.1.2
     # via
     #   geopandas
     #   rasterstats

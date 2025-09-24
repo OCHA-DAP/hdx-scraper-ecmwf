@@ -5,7 +5,7 @@ import logging
 from calendar import monthrange
 from datetime import datetime
 from os.path import basename, exists, join
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 from zipfile import ZipFile
 
 import numpy as np
@@ -19,6 +19,7 @@ from hdx.data.dataset import Dataset
 from hdx.data.resource import Resource
 from hdx.location.country import Country
 from hdx.utilities.dateparse import iso_string_from_datetime, parse_date
+from hdx.utilities.dictandlist import dict_of_lists_add
 from hdx.utilities.retriever import Retrieve
 from rasterstats import zonal_stats
 from requests.exceptions import HTTPError
@@ -34,10 +35,7 @@ class Pipeline:
         self.global_boundaries = {}
         self.grib_data = []
         self.existing_dates = []
-        self.processed_data = {
-            "adm0": pd.DataFrame(),
-            "adm1": pd.DataFrame(),
-        }
+        self.processed_data = {}
         self.raster_data = []
 
     def download_global_boundaries(self) -> None:
@@ -57,7 +55,7 @@ class Pipeline:
     def download_cds_data(
         self, cds_key: str, today: datetime, force_refresh: bool = False
     ) -> bool:
-        self._get_uploaded_data(force_refresh)
+        self._get_uploaded_data(today, force_refresh)
         if self._retriever.save or self._retriever.use_saved:
             root_dir = self._retriever.saved_dir
         else:
@@ -121,7 +119,8 @@ class Pipeline:
             return False
         return True
 
-    def process(self) -> None:
+    def process(self, today: datetime) -> None:
+        regions = _get_region_info()
         for grib_data in self.grib_data:
             dataset = xr.open_mfdataset(
                 grib_data,
@@ -209,17 +208,24 @@ class Pipeline:
                         results_zs["valid_year"] = int(valid_time.year)
                         results_zs["valid_month"] = int(valid_time.month)
 
-                        # add to processed data dataframe
-                        if len(self.processed_data[f"adm{admin_level}"]) == 0:
-                            self.processed_data[f"adm{admin_level}"] = results_zs
+                        # add to processed data dataframes
+                        if admin_level == "0":
+                            identifier = "adm0"
+                            self._add_processed_rows(identifier, results_zs)
                         else:
-                            self.processed_data[f"adm{admin_level}"] = pd.concat(
-                                [
-                                    self.processed_data[f"adm{admin_level}"],
-                                    results_zs,
-                                ],
-                                ignore_index=True,
-                            )
+                            past_3yrs = today - relativedelta(years=3)
+                            if valid_time >= past_3yrs:
+                                identifier = "adm1_global_3yrs"
+                                self._add_processed_rows(identifier, results_zs)
+                            for region_name, iso_list in regions.items():
+                                identifier = f"adm1_{region_name.lower()}"
+                                results_subset = results_zs[
+                                    results_zs["iso_code"].isin(iso_list)
+                                ]
+                                if len(results_subset) == 0:
+                                    continue
+                                self._add_processed_rows(identifier, results_subset)
+
         return
 
     def generate_dataset(self) -> Optional[Dataset]:
@@ -248,7 +254,8 @@ class Pipeline:
         dataset.add_other_location("world")
 
         # Add csv resources
-        for admin_level in ["0", "1"]:
+        for identifier in self.processed_data:
+            admin_level = identifier[3]
             fields = ["iso_code", "adm0_name"]
             if admin_level == "1":
                 fields = fields + ["adm1_pcode", "adm1_name"]
@@ -260,13 +267,16 @@ class Pipeline:
                 "valid_year",
                 "valid_month",
             ]
-            processed_data = self.processed_data[f"adm{admin_level}"][
+            processed_data = self.processed_data[identifier][
                 fields + ["mean_anomaly", "median_anomaly"]
             ]
             processed_data.sort_values(by=fields, inplace=True)
 
-            filename = f"forecast_precipitation_anomalies_adm{admin_level}.csv"
+            filename = f"forecast_precipitation_anomalies_{identifier}.csv"
             description = f"Summarized forecast precipitation anomalies data at adm{admin_level} from {iso_string_from_datetime(start_date)} to {iso_string_from_datetime(end_date)}"
+            if admin_level == "1" and "global" not in identifier:
+                region = identifier.split("_")[1]
+                description += f" for {region.title()}"
             resourcedata = {
                 "name": filename,
                 "description": description,
@@ -308,30 +318,46 @@ class Pipeline:
 
         return dataset
 
-    def _get_uploaded_data(self, force_refresh: bool) -> None:
+    def _get_uploaded_data(self, today: datetime, force_refresh: bool) -> None:
         if force_refresh:
             return
         dataset = Dataset.read_from_hdx("ecmwf-anomalous-precipitation")
         if not dataset:
             return
-        dates = []
         resources = dataset.get_resources()
         for resource in resources:
             if resource.get_format() != "csv":
                 continue
             file_path = self._retriever.download_file(resource["url"])
-            admin_level = resource["name"][-8:-4]
+            identifier = "_".join(resource["name"][:-4].split("_")[3:])
             uploaded_data = pd.read_csv(file_path)
-            self.processed_data[admin_level] = uploaded_data
-            if len(dates) == 0:
-                dates = [
-                    str(y) + "-" + str(m).zfill(2)
-                    for y, m in zip(
-                        uploaded_data["issue_year"], uploaded_data["issue_month"]
-                    )
-                ]
-                dates = list(set(dates))
-                self.existing_dates = sorted(dates)
+            dates = [
+                str(y) + "-" + str(m).zfill(2)
+                for y, m in zip(
+                    uploaded_data["issue_year"], uploaded_data["issue_month"]
+                )
+            ]
+            # filter data to only include past 3 years
+            if "3yrs" in resource["name"]:
+                past_3yrs = today - relativedelta(years=3)
+                past_3yrs = f"{past_3yrs.year}-{past_3yrs.month}"
+                uploaded_data = uploaded_data[[d > past_3yrs for d in dates]]
+            self.processed_data[identifier] = uploaded_data
+
+            dates = list(set(dates + self.existing_dates))
+            self.existing_dates = sorted(dates)
+
+    def _add_processed_rows(self, identifier: str, df: pd.DataFrame()) -> None:
+        if self.processed_data.get(identifier) is None:
+            self.processed_data[identifier] = df
+        else:
+            self.processed_data[identifier] = pd.concat(
+                [
+                    self.processed_data[identifier],
+                    df,
+                ],
+                ignore_index=True,
+            )
 
 
 def _get_country_info(country_code: str) -> Tuple[str, str]:
@@ -348,3 +374,14 @@ def _get_country_info(country_code: str) -> Tuple[str, str]:
     else:
         logger.error(f"Unknown country code: {country_code}")
     return iso_code, country_name
+
+
+def _get_region_info() -> Dict[str, str]:
+    region_info = {}
+    country_info = Country.countriesdata()["countries"]
+    for iso, country in country_info.items():
+        region = country["#region+main+name+preferred"]
+        if not region:
+            continue
+        dict_of_lists_add(region_info, region, iso)
+    return region_info

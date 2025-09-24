@@ -36,7 +36,7 @@ class TestPipeline:
                 assert updated is True
 
                 pipeline.download_global_boundaries()
-                pipeline.process()
+                pipeline.process(today)
                 dataset = pipeline.generate_dataset()
                 dataset.update_from_yaml(
                     path=join(config_dir, "hdx_dataset_static.yaml")
@@ -83,8 +83,14 @@ class TestPipeline:
                         "format": "csv",
                     },
                     {
-                        "name": "forecast_precipitation_anomalies_adm1.csv",
+                        "name": "forecast_precipitation_anomalies_adm1_global_3yrs.csv",
                         "description": "Summarized forecast precipitation anomalies data at adm1 from 2024-01-01 to 2025-03-31",
+                        "p_coded": True,
+                        "format": "csv",
+                    },
+                    {
+                        "name": "forecast_precipitation_anomalies_adm1_asia.csv",
+                        "description": "Summarized forecast precipitation anomalies data at adm1 from 2024-01-01 to 2025-03-31 for Asia",
                         "p_coded": True,
                         "format": "csv",
                     },
@@ -100,6 +106,17 @@ class TestPipeline:
                     join(tempdir, "forecast_precipitation_anomalies_adm0.csv"),
                 )
                 assert_files_same(
-                    join(fixtures_dir, "forecast_precipitation_anomalies_adm1.csv"),
-                    join(tempdir, "forecast_precipitation_anomalies_adm1.csv"),
+                    join(
+                        fixtures_dir,
+                        "forecast_precipitation_anomalies_adm1_global_3yrs.csv",
+                    ),
+                    join(
+                        tempdir, "forecast_precipitation_anomalies_adm1_global_3yrs.csv"
+                    ),
+                )
+                assert_files_same(
+                    join(
+                        fixtures_dir, "forecast_precipitation_anomalies_adm1_asia.csv"
+                    ),
+                    join(tempdir, "forecast_precipitation_anomalies_adm1_asia.csv"),
                 )

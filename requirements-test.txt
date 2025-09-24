@@ -441,7 +441,7 @@ setuptools==80.9.0
     # via
     #   -c requirements.txt
     #   ckanapi
-shapely==2.1.1
+shapely==2.1.2
     # via
     #   -c requirements.txt
     #   geopandas
