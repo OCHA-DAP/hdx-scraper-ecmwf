@@ -13,6 +13,7 @@ import pandas as pd
 import xarray as xr
 from cdsapi import Client
 from dateutil.relativedelta import relativedelta
+from exactextract import exact_extract
 from geopandas import read_file
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
@@ -21,7 +22,6 @@ from hdx.location.country import Country
 from hdx.utilities.dateparse import iso_string_from_datetime, parse_date
 from hdx.utilities.dictandlist import dict_of_lists_add
 from hdx.utilities.retriever import Retrieve
-from rasterstats import zonal_stats
 from requests.exceptions import HTTPError
 
 logger = logging.getLogger(__name__)
@@ -158,28 +158,23 @@ class Pipeline:
                     # calculate statistics
                     for admin_level in ["0", "1"]:
                         adm_data = self.global_boundaries[admin_level]
-                        results_zs = zonal_stats(
-                            vectors=adm_data[["geometry"]],
-                            raster=out_tif,
-                            all_touched=False,
-                            stats=["mean", "median"],
-                        )
-                        fields = (
-                            ["mean", "median"]
-                            + [
-                                f"adm{level}_pcode"
-                                for level in range(0, int(admin_level) + 1)
-                            ]
-                            + [
-                                f"adm{level}_name"
-                                for level in range(0, int(admin_level) + 1)
-                            ]
-                        )
-                        results_zs = pd.DataFrame.from_dict(results_zs).join(adm_data)[
-                            fields
+                        include_cols = [
+                            f"adm{level}_pcode"
+                            for level in range(0, int(admin_level) + 1)
+                        ] + [
+                            f"adm{level}_name"
+                            for level in range(0, int(admin_level) + 1)
                         ]
+                        results_zs = exact_extract(
+                            out_tif,
+                            adm_data,
+                            ["count", "mean", "median"],
+                            include_cols=include_cols,
+                            output="pandas",
+                        )
                         results_zs.rename(
                             columns={
+                                "count": "pixel_count",
                                 "mean": "mean_anomaly",
                                 "median": "median_anomaly",
                             },
@@ -268,7 +263,7 @@ class Pipeline:
                 "valid_month",
             ]
             processed_data = self.processed_data[identifier][
-                fields + ["mean_anomaly", "median_anomaly"]
+                fields + ["pixel_count", "mean_anomaly", "median_anomaly"]
             ]
             processed_data.sort_values(by=fields, inplace=True)
 
