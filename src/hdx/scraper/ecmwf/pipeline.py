@@ -49,6 +49,25 @@ class Pipeline:
             z.extractall(gdb_file_path)
         for admin_level in ["0", "1"]:
             adm_data = read_file(gdb_file_path, layer=f"adm{admin_level}")
+            # add admin 0 fields
+            iso_codes = {}
+            country_names = {}
+            country_codes = list(set(adm_data["adm0_pcode"]))
+            for country_code in country_codes:
+                iso_code, country_name = _get_country_info(country_code)
+                iso_codes[country_code] = iso_code
+                country_names[country_code] = country_name
+            adm_data["iso_code"] = adm_data["adm0_pcode"].map(iso_codes)
+            adm_data["adm0_name"] = adm_data["adm0_pcode"].map(country_names)
+            keep_columns = [
+                "iso_code",
+                "adm0_name",
+                "adm1_name",
+                "adm1_pcode",
+                "geometry",
+            ]
+            drop_columns = [c for c in adm_data.columns if c not in keep_columns]
+            adm_data.drop(drop_columns, axis=1, inplace=True)
             self.global_boundaries[admin_level] = adm_data
         return
 
@@ -158,13 +177,9 @@ class Pipeline:
                     # calculate statistics
                     for admin_level in ["0", "1"]:
                         adm_data = self.global_boundaries[admin_level]
-                        include_cols = [
-                            f"adm{level}_pcode"
-                            for level in range(0, int(admin_level) + 1)
-                        ] + [
-                            f"adm{level}_name"
-                            for level in range(0, int(admin_level) + 1)
-                        ]
+                        include_cols = ["iso_code", "adm0_name"]
+                        if admin_level == "1":
+                            include_cols += ["adm1_pcode", "adm1_name"]
                         results_zs = exact_extract(
                             out_tif,
                             adm_data,
@@ -181,21 +196,7 @@ class Pipeline:
                             inplace=True,
                         )
 
-                        # add admin 0 fields
-                        iso_codes = {}
-                        country_names = {}
-                        country_codes = list(set(results_zs["adm0_pcode"]))
-                        for country_code in country_codes:
-                            iso_code, country_name = _get_country_info(country_code)
-                            iso_codes[country_code] = iso_code
-                            country_names[country_code] = country_name
-                        results_zs["iso_code"] = results_zs["adm0_pcode"].map(iso_codes)
-                        results_zs["adm0_name"] = results_zs["adm0_pcode"].map(
-                            country_names
-                        )
-                        results_zs.drop("adm0_pcode", axis=1, inplace=True)
-
-                        # add other needed fields
+                        # add needed fields
                         results_zs["admin_level"] = admin_level
                         results_zs["issue_year"] = int(year)
                         results_zs["issue_month"] = int(month)
