@@ -49,6 +49,7 @@ class Pipeline:
             z.extractall(gdb_file_path)
         for admin_level in ["0", "1"]:
             adm_data = read_file(gdb_file_path, layer=f"adm{admin_level}")
+            adm_data = adm_data.to_crs(epsg=4326)
             # add admin 0 fields
             iso_codes = {}
             country_names = {}
