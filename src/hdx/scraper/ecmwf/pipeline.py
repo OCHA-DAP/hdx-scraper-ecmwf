@@ -134,7 +134,7 @@ class Pipeline:
             dataset = dataset.rio.write_crs("EPSG:4326")
             issue_dates = dataset.time.values
             if not isinstance(issue_dates, np.ndarray):
-                issue_dates = np.asarray(issue_dates)
+                issue_dates = np.asarray([issue_dates])
             leadtime_months = dataset.forecastMonth.values
 
             # save to raster
