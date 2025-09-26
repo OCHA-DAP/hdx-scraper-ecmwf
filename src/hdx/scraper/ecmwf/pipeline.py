@@ -213,7 +213,7 @@ class Pipeline:
                                 self._add_processed_rows(identifier, results_zs)
                             else:
                                 past_3yrs = today - relativedelta(years=3)
-                                if valid_time >= past_3yrs:
+                                if valid_time.date() >= past_3yrs.date():
                                     identifier = "adm1_global_3yrs"
                                     self._add_processed_rows(identifier, results_zs)
                                 region_name = regions[iso]
