@@ -158,10 +158,11 @@ class Pipeline:
 
             # save to raster
             for issue_date in issue_dates:
-                logger.info(f"Processing issue date: {issue_dates}")
+                logger.info(f"Processing issue date: {issue_date}")
                 year = np.datetime_as_string(issue_date, unit="Y")
                 month = np.datetime_as_string(issue_date, unit="M")[-2:]
                 for leadtime_month in leadtime_months:
+                    logger.info(f"Processing leadtime month: {leadtime_month}")
                     # convert to accumulation
                     valid_time = pd.to_datetime(issue_date) + relativedelta(
                         months=leadtime_month - 1
