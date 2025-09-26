@@ -213,7 +213,7 @@ pytz==2025.2
     # via
     #   multiurl
     #   pandas
-pyyaml==6.0.2
+pyyaml==6.0.3
     # via
     #   dask
     #   frictionless
