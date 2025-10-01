@@ -1,12 +1,41 @@
 license_id: cc-by
 methodology: Other
-methodology_other: Placeholder
-caveats: Placeholder
+methodology_other: |
+  Anomalies calculated by subtracting the climatology (long term average) from the values of each individual forecast.
+
+  Data is converted from a monthly anomalous precipitation rate to total accumulated precipitation per month in mm.
+
+  See an example of these calculations [here](https://ecmwf-projects.github.io/copernicus-training-c3s/sf-anomalies.html).
+
+  The anomalies are made available in a tabular format by taking the mean and median of all grid cells within administrative boundary polygons at the admin 0 and admin 1 levels.
+caveats: |
+  Users should be aware that the gridded product from ECMWF is provided at a 1 degree resolution.
+
+  While use of the anomalies may alleviate the impacts of possible forecast biases, users should be aware of variable forecast skill, particularly across longer lead times. Forecast skill may also vary significantly by location.
 dataset_source: Climate Data Store
 package_creator: HDX Data Systems Team
 private: False
 maintainer: aa13de36-28c5-47a7-8d0b-6d7c754ba8c8
 owner_org: hdx
 data_update_frequency: 30
-notes: Placeholder
+notes: |
+  This data can be used to identify how forecasted precipitation may differ from the long term average, for a given location and time of the year.
+
+  Anomaly product derived from ECMWF’s SEAS5 seasonal precipitation forecast. SEAS5 is an ensemble forecast, meaning that the weather model outputs many possible scenarios, leading to probabilistic outcomes. The data presented here is the result of averaging all outputs (the “ensemble mean”).
+
+  Gridded product can also be accessed from the [Copernicus Climate Data Store (CDS)](https://cds.climate.copernicus.eu/datasets/seasonal-postprocessed-single-levels?tab=overview).
+
+  Data is provided at a monthly time scale.
+
+  From CDS docs: “The anomalies provide information on how unusual, or how distant, the forecast is from the corresponding climate normal. The anomalies alleviate systematic deviations (biases) from the true climate that exist for given forecast parameters, lead times and geographical regions in seasonal forecasts.”
+
+  There are three resources in this dataset:
+
+    - Recent global anomalies
+
+    - Full historical record of anomalies, separated by region
+
+    - Geotiff of latest forecast
+
+  Users should be careful in their handling of the temporal attributes of this dataset. Variables prefixed with “issued_” refer to the date that the forecast was issued by ECMWF. Variables prefixed with “valid_” refer to the date that the forecast applies to. The difference in months between “issued_” and “valid_” dates is captured by the “leadtime” variable.
 subnational: "1"

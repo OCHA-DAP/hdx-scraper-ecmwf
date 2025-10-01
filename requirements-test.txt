@@ -19,7 +19,7 @@ attrs==25.3.0
     #   jsonschema
     #   rasterio
     #   referencing
-cdsapi==0.7.6
+cdsapi==0.7.7
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
@@ -34,7 +34,7 @@ cffi==2.0.0
     # via
     #   -c requirements.txt
     #   eccodes
-cfgrib==0.9.15.0
+cfgrib==0.9.15.1
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
@@ -227,7 +227,7 @@ marko==2.2.0
     # via
     #   -c requirements.txt
     #   frictionless
-markupsafe==3.0.2
+markupsafe==3.0.3
     # via
     #   -c requirements.txt
     #   jinja2
@@ -273,7 +273,7 @@ packaging==25.0
     #   pytest
     #   rioxarray
     #   xarray
-pandas==2.3.2
+pandas==2.3.3
     # via
     #   -c requirements.txt
     #   geopandas
@@ -440,7 +440,7 @@ simpleeval==1.0.3
     # via
     #   -c requirements.txt
     #   frictionless
-simplejson==3.20.1
+simplejson==3.20.2
     # via
     #   -c requirements.txt
     #   ckanapi
@@ -503,7 +503,7 @@ typing-extensions==4.15.0
     #   typeguard
     #   typer
     #   typing-inspection
-typing-inspection==0.4.1
+typing-inspection==0.4.2
     # via
     #   -c requirements.txt
     #   pydantic
@@ -529,7 +529,7 @@ wheel==0.45.1
     # via
     #   -c requirements.txt
     #   libhxl
-xarray==2025.9.0
+xarray==2025.9.1
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
