@@ -68,6 +68,9 @@ class Pipeline:
             ]
             drop_columns = [c for c in adm_data.columns if c not in keep_columns]
             adm_data.drop(drop_columns, axis=1, inplace=True)
+            adm_data["geometry"] = adm_data["geometry"].simplify(
+                tolerance=0.001, preserve_topology=True
+            )
             self.global_boundaries[admin_level] = adm_data
         return
 
