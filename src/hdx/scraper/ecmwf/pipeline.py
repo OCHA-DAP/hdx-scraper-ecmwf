@@ -194,6 +194,9 @@ class Pipeline:
                                 include_cols=include_cols,
                                 output="pandas",
                             )
+                            results_zs[["count", "mean", "median"]] = results_zs[
+                                ["count", "mean", "median"]
+                            ].round(5)
                             results_zs.rename(
                                 columns={
                                     "count": "pixel_count",

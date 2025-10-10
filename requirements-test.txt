@@ -8,7 +8,7 @@ annotated-types==0.7.0
     # via
     #   -c requirements.txt
     #   pydantic
-attrs==25.3.0
+attrs==25.4.0
     # via
     #   -c requirements.txt
     #   cfgrib
@@ -23,7 +23,7 @@ cdsapi==0.7.7
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
-certifi==2025.8.3
+certifi==2025.10.5
     # via
     #   -c requirements.txt
     #   pyogrio
@@ -94,15 +94,15 @@ docutils==0.22.2
     # via
     #   -c requirements.txt
     #   defopt
-eccodes==2.43.0
+eccodes==2.44.0
     # via
     #   -c requirements.txt
     #   cfgrib
-eccodeslib==2.43.0
+eccodeslib==2.44.0.1
     # via
     #   -c requirements.txt
     #   eccodes
-eckitlib==1.31.4
+eckitlib==1.32.1.1
     # via
     #   -c requirements.txt
     #   eccodeslib
@@ -123,7 +123,7 @@ exactextract==0.2.2
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
-fckitlib==0.14.0
+fckitlib==0.14.0.1
     # via
     #   -c requirements.txt
     #   eccodeslib
@@ -152,7 +152,7 @@ hdx-python-country==3.9.8
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   hdx-python-api
-hdx-python-utilities==3.9.3
+hdx-python-utilities==3.9.5
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
@@ -167,7 +167,7 @@ idna==3.10
     #   -c requirements.txt
     #   email-validator
     #   requests
-ijson==3.4.0
+ijson==3.4.0.post0
     # via
     #   -c requirements.txt
     #   hdx-python-utilities
@@ -303,11 +303,11 @@ pycparser==2.23
     # via
     #   -c requirements.txt
     #   cffi
-pydantic==2.11.9
+pydantic==2.12.0
     # via
     #   -c requirements.txt
     #   frictionless
-pydantic-core==2.33.2
+pydantic-core==2.41.1
     # via
     #   -c requirements.txt
     #   pydantic
@@ -403,7 +403,7 @@ rfc3986==2.0.0
     # via
     #   -c requirements.txt
     #   frictionless
-rich==14.1.0
+rich==14.2.0
     # via
     #   -c requirements.txt
     #   typer
@@ -529,7 +529,7 @@ wheel==0.45.1
     # via
     #   -c requirements.txt
     #   libhxl
-xarray==2025.9.1
+xarray==2025.10.1
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
