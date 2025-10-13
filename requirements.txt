@@ -4,7 +4,7 @@ affine==2.4.0
     # via rasterio
 annotated-types==0.7.0
     # via pydantic
-attrs==25.3.0
+attrs==25.4.0
     # via
     #   cfgrib
     #   eccodes
@@ -16,7 +16,7 @@ attrs==25.3.0
     #   referencing
 cdsapi==0.7.7
     # via hdx-scraper-ecmwf (pyproject.toml)
-certifi==2025.8.3
+certifi==2025.10.5
     # via
     #   pyogrio
     #   pyproj
@@ -58,11 +58,11 @@ docopt==0.6.2
     #   num2words
 docutils==0.22.2
     # via defopt
-eccodes==2.43.0
+eccodes==2.44.0
     # via cfgrib
-eccodeslib==2.43.0
+eccodeslib==2.44.0.4
     # via eccodes
-eckitlib==1.31.4
+eckitlib==1.32.2.4
     # via
     #   eccodeslib
     #   fckitlib
@@ -74,7 +74,7 @@ et-xmlfile==2.0.0
     # via openpyxl
 exactextract==0.2.2
     # via hdx-scraper-ecmwf (pyproject.toml)
-fckitlib==0.14.0
+fckitlib==0.14.0.4
     # via eccodeslib
 findlibs==0.1.2
     # via eccodes
@@ -84,24 +84,24 @@ fsspec==2025.9.0
     # via dask
 geopandas==1.1.1
     # via hdx-scraper-ecmwf (pyproject.toml)
-hdx-python-api==6.5.1
+hdx-python-api==6.5.2
     # via hdx-scraper-ecmwf (pyproject.toml)
 hdx-python-country==3.9.8
     # via
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   hdx-python-api
-hdx-python-utilities==3.9.3
+hdx-python-utilities==3.9.5
     # via
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   hdx-python-api
     #   hdx-python-country
 humanize==4.13.0
     # via frictionless
-idna==3.10
+idna==3.11
     # via
     #   email-validator
     #   requests
-ijson==3.4.0
+ijson==3.4.0.post0
     # via hdx-python-utilities
 inflect==7.5.0
     # via quantulum3
@@ -131,7 +131,7 @@ makefun==1.16.0
     # via hdx-python-api
 markdown-it-py==4.0.0
     # via rich
-marko==2.2.0
+marko==2.2.1
     # via frictionless
 markupsafe==3.0.3
     # via jinja2
@@ -180,9 +180,9 @@ pockets==0.9.1
     # via sphinxcontrib-napoleon
 pycparser==2.23
     # via cffi
-pydantic==2.11.9
+pydantic==2.12.0
     # via frictionless
-pydantic-core==2.33.2
+pydantic-core==2.41.1
     # via pydantic
 pygments==2.19.2
     # via rich
@@ -224,7 +224,7 @@ rasterio==1.4.3
     # via rioxarray
 ratelimit==2.2.1
     # via hdx-python-utilities
-referencing==0.36.2
+referencing==0.37.0
     # via
     #   jsonschema
     #   jsonschema-specifications
@@ -242,7 +242,7 @@ requests-file==2.1.0
     # via hdx-python-utilities
 rfc3986==2.0.0
     # via frictionless
-rich==14.1.0
+rich==14.2.0
     # via typer
 rioxarray==0.19.0
     # via hdx-scraper-ecmwf (pyproject.toml)
@@ -319,7 +319,7 @@ validators==0.35.0
     # via frictionless
 wheel==0.45.1
     # via libhxl
-xarray==2025.9.1
+xarray==2025.10.1
     # via
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   rioxarray

@@ -62,28 +62,25 @@ class TestPipeline:
                     "groups": [{"name": "world"}],
                     "license_id": "cc-by",
                     "methodology": "Other",
-                    "methodology_other": "Anomalies calculated by subtracting the climatology (long term average) from the values of each individual forecast.\n\n"
+                    "methodology_other": "Anomalies are calculated by subtracting the climatology (long term average from 1993-2016) from each individual forecast.\n\n"
                     "Data is converted from a monthly anomalous precipitation rate to total accumulated precipitation per month in mm.\n\n"
                     "See an example of these calculations [here](https://ecmwf-projects.github.io/copernicus-training-c3s/sf-anomalies.html).\n\n"
                     "The anomalies are made available in a tabular format by taking the mean and median of all grid cells within administrative boundary polygons at the admin 0 and admin 1 levels.\n",
-                    "caveats": "Users should be aware that the gridded product from ECMWF is provided at a 1 degree resolution.\n\n"
-                    "While use of the anomalies may alleviate the impacts of possible forecast biases, users should be aware of variable forecast skill, particularly across longer lead times. Forecast skill may also vary significantly by location.\n",
-                    "dataset_source": "Climate Data Store",
+                    "caveats": "The gridded product from ECMWF is provided at a 1 degree resolution.\n\n"
+                    "Forecast skill is variable, particularly across longer lead times. Forecast skill may also vary significantly by location, with even a negative correlation in some locations and lead times. See [these plots](https://confluence.ecmwf.int/display/CKB/C3S+seasonal+forecasts+verification+plots) from ECMWF for more information.\n\n"
+                    "Users should be careful in their handling of the temporal attributes of this dataset. Variables prefixed with “issue_” refer to the time that the forecast was issued by ECMWF. Variables prefixed with “valid_” refer to the time that the forecast applies to. The difference in months between “issued_” and “valid_” dates is captured by the “lead_time” variable.\n",
+                    "dataset_source": "Copernicus Climate Data Store",
                     "package_creator": "HDX Data Systems Team",
                     "private": False,
                     "maintainer": "aa13de36-28c5-47a7-8d0b-6d7c754ba8c8",
                     "owner_org": "hdx",
                     "data_update_frequency": 30,
-                    "notes": "This data can be used to identify how forecasted precipitation may differ from the long term average, for a given location and time of the year.\n\n"
-                    "Anomaly product derived from ECMWF’s SEAS5 seasonal precipitation forecast. SEAS5 is an ensemble forecast, meaning that the weather model outputs many possible scenarios, leading to probabilistic outcomes. The data presented here is the result of averaging all outputs (the “ensemble mean”).\n\n"
-                    "Gridded product can also be accessed from the [Copernicus Climate Data Store (CDS)](https://cds.climate.copernicus.eu/datasets/seasonal-postprocessed-single-levels?tab=overview).\n\n"
-                    "Data is provided at a monthly time scale.\n\n"
-                    "From CDS docs: “The anomalies provide information on how unusual, or how distant, the forecast is from the corresponding climate normal. The anomalies alleviate systematic deviations (biases) from the true climate that exist for given forecast parameters, lead times and geographical regions in seasonal forecasts.”\n\n"
-                    "There are three resources in this dataset:\n\n"
-                    "  - Recent global anomalies\n\n"
-                    "  - Full historical record of anomalies, separated by region\n\n"
-                    "  - Geotiff of latest forecast\n\n"
-                    "Users should be careful in their handling of the temporal attributes of this dataset. Variables prefixed with “issued_” refer to the date that the forecast was issued by ECMWF. Variables prefixed with “valid_” refer to the date that the forecast applies to. The difference in months between “issued_” and “valid_” dates is captured by the “leadtime” variable.\n",
+                    "notes": "This data can be used to identify how forecasted precipitation may differ from the long term average, for a given location and time of the year. These anomalies are calculated by the European Centre for Medium-Range Weather Forecasts (ECMWF) and are based on their SEAS5 seasonal precipitation forecast. SEAS5 is an ensemble forecast, meaning that the weather model outputs many possible scenarios, leading to probabilistic outcomes. The data presented here is the result of averaging all outputs (the “ensemble mean”). Additional postprocessing has been applied here to aggregate ECMWF’s gridded outputs across administrative boundaries (at both admin 0 and admin 1 levels). The gridded product can also be accessed from the [Copernicus Climate Data Store (CDS)](https://cds.climate.copernicus.eu/datasets/seasonal-postprocessed-single-levels?tab=overview).\n\n"
+                    "Data is available on the 5th of each month, with up to 6 months of lead time (including the current month). Anomaly values are in mm/month, with positive values indicating above average precipitation. The resources in this dataset include:\n\n"
+                    "  - Full admin 0 historical record of anomalies (forecast_precipitation_anomalies_adm0.csv)\n\n"
+                    "  - Recent admin 1 global anomalies (forecast_precipitation_anomalies_adm1_global_3yrs.csv)\n\n"
+                    "  - Full admin 1 historical record of anomalies, separated by region (forecast_precipitation_anomalies_adm1_{region}.csv)\n\n"
+                    "  - Geotiffs of anomalies based on latest forecast (forecast_precipitation_anomalies_geotiff_{forecast_date}.zip)\n",
                     "subnational": "1",
                 }
 
