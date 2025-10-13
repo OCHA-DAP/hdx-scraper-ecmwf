@@ -98,11 +98,11 @@ eccodes==2.44.0
     # via
     #   -c requirements.txt
     #   cfgrib
-eccodeslib==2.44.0.1
+eccodeslib==2.44.0.4
     # via
     #   -c requirements.txt
     #   eccodes
-eckitlib==1.32.1.1
+eckitlib==1.32.2.4
     # via
     #   -c requirements.txt
     #   eccodeslib
@@ -123,7 +123,7 @@ exactextract==0.2.2
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
-fckitlib==0.14.0.1
+fckitlib==0.14.0.4
     # via
     #   -c requirements.txt
     #   eccodeslib
@@ -143,7 +143,7 @@ geopandas==1.1.1
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
-hdx-python-api==6.5.1
+hdx-python-api==6.5.2
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
@@ -162,7 +162,7 @@ humanize==4.13.0
     # via
     #   -c requirements.txt
     #   frictionless
-idna==3.10
+idna==3.11
     # via
     #   -c requirements.txt
     #   email-validator
@@ -223,7 +223,7 @@ markdown-it-py==4.0.0
     # via
     #   -c requirements.txt
     #   rich
-marko==2.2.0
+marko==2.2.1
     # via
     #   -c requirements.txt
     #   frictionless
@@ -379,7 +379,7 @@ ratelimit==2.2.1
     # via
     #   -c requirements.txt
     #   hdx-python-utilities
-referencing==0.36.2
+referencing==0.37.0
     # via
     #   -c requirements.txt
     #   jsonschema

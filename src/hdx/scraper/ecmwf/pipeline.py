@@ -21,6 +21,7 @@ from hdx.data.resource import Resource
 from hdx.location.country import Country
 from hdx.utilities.dateparse import iso_string_from_datetime, parse_date
 from hdx.utilities.retriever import Retrieve
+from rasterio import open
 from requests.exceptions import HTTPError
 
 logger = logging.getLogger(__name__)
@@ -158,14 +159,13 @@ class Pipeline:
             if not isinstance(issue_dates, np.ndarray):
                 issue_dates = np.asarray([issue_dates])
             leadtime_months = dataset.forecastMonth.values
-
-            # save to raster
             for issue_date in issue_dates:
                 logger.info(f"Processing issue date: {issue_date}")
                 year = np.datetime_as_string(issue_date, unit="Y")
                 month = np.datetime_as_string(issue_date, unit="M")[-2:]
                 for leadtime_month in leadtime_months:
                     logger.info(f"Processing leadtime month: {leadtime_month}")
+
                     # convert to accumulation
                     valid_time = pd.to_datetime(issue_date) + relativedelta(
                         months=leadtime_month - 1
@@ -173,59 +173,62 @@ class Pipeline:
                     numdays = monthrange(valid_time.year, valid_time.month)[1]
                     data = dataset.sel(time=issue_date, forecastMonth=leadtime_month)
                     data = data * numdays * 24 * 60 * 60 * 1000
+
+                    # save to raster
                     raster_name = f"anomalous_accumulation_{year}_{month}_leadtime{int(leadtime_month) - 1}.tif"
                     out_tif = join(self._tempdir, raster_name)
                     data.rio.to_raster(out_tif)
                     self.raster_data.append(out_tif)
 
                     # calculate statistics
-                    for admin_level in ["0", "1"]:
-                        adm_data = self.global_boundaries[admin_level]
-                        include_cols = ["iso_code", "adm0_name"]
-                        if admin_level == "1":
-                            include_cols += ["adm1_pcode", "adm1_name"]
-                        iso_list = list(set(adm_data["iso_code"]))
-                        for iso in iso_list:
-                            subset_adm_data = adm_data[adm_data["iso_code"] == iso]
-                            results_zs = exact_extract(
-                                out_tif,
-                                subset_adm_data,
-                                ["count", "mean", "median"],
-                                include_cols=include_cols,
-                                output="pandas",
-                            )
-                            results_zs[["count", "mean", "median"]] = results_zs[
-                                ["count", "mean", "median"]
-                            ].round(5)
-                            results_zs.rename(
-                                columns={
-                                    "count": "pixel_count",
-                                    "mean": "mean_anomaly",
-                                    "median": "median_anomaly",
-                                },
-                                inplace=True,
-                            )
+                    with open(out_tif) as open_raster:
+                        for admin_level in ["0", "1"]:
+                            adm_data = self.global_boundaries[admin_level]
+                            include_cols = ["iso_code", "adm0_name"]
+                            if admin_level == "1":
+                                include_cols += ["adm1_pcode", "adm1_name"]
+                            iso_list = list(set(adm_data["iso_code"]))
+                            for iso in iso_list:
+                                subset_adm_data = adm_data[adm_data["iso_code"] == iso]
+                                results_zs = exact_extract(
+                                    open_raster,
+                                    subset_adm_data,
+                                    ["count", "mean", "median"],
+                                    include_cols=include_cols,
+                                    output="pandas",
+                                )
+                                results_zs[["count", "mean", "median"]] = results_zs[
+                                    ["count", "mean", "median"]
+                                ].round(5)
+                                results_zs.rename(
+                                    columns={
+                                        "count": "pixel_count",
+                                        "mean": "mean_anomaly",
+                                        "median": "median_anomaly",
+                                    },
+                                    inplace=True,
+                                )
 
-                            # add needed fields
-                            results_zs["admin_level"] = admin_level
-                            results_zs["issue_year"] = int(year)
-                            results_zs["issue_month"] = int(month)
-                            results_zs["lead_time"] = int(leadtime_month) - 1
-                            results_zs["valid_year"] = int(valid_time.year)
-                            results_zs["valid_month"] = int(valid_time.month)
+                                # add needed fields
+                                results_zs["admin_level"] = admin_level
+                                results_zs["issue_year"] = int(year)
+                                results_zs["issue_month"] = int(month)
+                                results_zs["lead_time"] = int(leadtime_month) - 1
+                                results_zs["valid_year"] = int(valid_time.year)
+                                results_zs["valid_month"] = int(valid_time.month)
 
-                            # add to processed data dataframes
-                            if admin_level == "0":
-                                identifier = "adm0"
-                                self._add_processed_rows(identifier, results_zs)
-                            else:
-                                past_3yrs = today - relativedelta(years=3)
-                                if valid_time.date() >= past_3yrs.date():
-                                    identifier = "adm1_global_3yrs"
+                                # add to processed data dataframes
+                                if admin_level == "0":
+                                    identifier = "adm0"
                                     self._add_processed_rows(identifier, results_zs)
-                                region_name = regions[iso]
-                                identifier = f"adm1_{region_name.lower()}"
-                                self._add_processed_rows(identifier, results_zs)
+                                else:
+                                    past_3yrs = today - relativedelta(years=3)
+                                    if valid_time.date() >= past_3yrs.date():
+                                        identifier = "adm1_global_3yrs"
+                                        self._add_processed_rows(identifier, results_zs)
+                                    region_name = regions[iso]
+                                    identifier = f"adm1_{region_name.lower()}"
+                                    self._add_processed_rows(identifier, results_zs)
 
         return
 

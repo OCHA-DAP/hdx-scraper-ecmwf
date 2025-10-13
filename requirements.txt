@@ -60,9 +60,9 @@ docutils==0.22.2
     # via defopt
 eccodes==2.44.0
     # via cfgrib
-eccodeslib==2.44.0.1
+eccodeslib==2.44.0.4
     # via eccodes
-eckitlib==1.32.1.1
+eckitlib==1.32.2.4
     # via
     #   eccodeslib
     #   fckitlib
@@ -74,7 +74,7 @@ et-xmlfile==2.0.0
     # via openpyxl
 exactextract==0.2.2
     # via hdx-scraper-ecmwf (pyproject.toml)
-fckitlib==0.14.0.1
+fckitlib==0.14.0.4
     # via eccodeslib
 findlibs==0.1.2
     # via eccodes
@@ -84,7 +84,7 @@ fsspec==2025.9.0
     # via dask
 geopandas==1.1.1
     # via hdx-scraper-ecmwf (pyproject.toml)
-hdx-python-api==6.5.1
+hdx-python-api==6.5.2
     # via hdx-scraper-ecmwf (pyproject.toml)
 hdx-python-country==3.9.8
     # via
@@ -97,7 +97,7 @@ hdx-python-utilities==3.9.5
     #   hdx-python-country
 humanize==4.13.0
     # via frictionless
-idna==3.10
+idna==3.11
     # via
     #   email-validator
     #   requests
@@ -131,7 +131,7 @@ makefun==1.16.0
     # via hdx-python-api
 markdown-it-py==4.0.0
     # via rich
-marko==2.2.0
+marko==2.2.1
     # via frictionless
 markupsafe==3.0.3
     # via jinja2
@@ -224,7 +224,7 @@ rasterio==1.4.3
     # via rioxarray
 ratelimit==2.2.1
     # via hdx-python-utilities
-referencing==0.36.2
+referencing==0.37.0
     # via
     #   jsonschema
     #   jsonschema-specifications
