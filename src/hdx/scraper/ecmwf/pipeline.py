@@ -234,7 +234,7 @@ class Pipeline:
 
     def generate_dataset(self) -> Optional[Dataset]:
         dataset_name = "ecmwf-anomalous-precipitation"
-        dataset_title = "ECMWF SEA5 Seasonal Forecasts - Anomalous Precipitation"
+        dataset_title = "ECMWF SEAS5 Seasonal Forecasts - Anomalous Precipitation"
         dataset = Dataset(
             {
                 "name": dataset_name,
