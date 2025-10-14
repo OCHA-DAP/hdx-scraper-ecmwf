@@ -43,7 +43,7 @@ class TestPipeline:
                 )
                 assert dataset == {
                     "name": "ecmwf-anomalous-precipitation",
-                    "title": "ECMWF SEA5 Seasonal Forecasts - Anomalous Precipitation",
+                    "title": "ECMWF SEAS5 Seasonal Forecasts - Anomalous Precipitation",
                     "dataset_date": "[2024-01-01T00:00:00 TO 2025-03-31T23:59:59]",
                     "tags": [
                         {
