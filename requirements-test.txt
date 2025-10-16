@@ -71,9 +71,9 @@ cloudpickle==3.1.1
     # via
     #   -c requirements.txt
     #   dask
-coverage==7.10.7
+coverage==7.11.0
     # via pytest-cov
-dask==2025.9.1
+dask==2025.10.0
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
@@ -158,7 +158,7 @@ hdx-python-utilities==3.9.5
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   hdx-python-api
     #   hdx-python-country
-humanize==4.13.0
+humanize==4.14.0
     # via
     #   -c requirements.txt
     #   frictionless
@@ -247,7 +247,7 @@ num2words==0.5.14
     # via
     #   -c requirements.txt
     #   quantulum3
-numpy==2.3.3
+numpy==2.3.4
     # via
     #   -c requirements.txt
     #   cfgrib
@@ -303,11 +303,11 @@ pycparser==2.23
     # via
     #   -c requirements.txt
     #   cffi
-pydantic==2.12.1
+pydantic==2.12.2
     # via
     #   -c requirements.txt
     #   frictionless
-pydantic-core==2.41.3
+pydantic-core==2.41.4
     # via
     #   -c requirements.txt
     #   pydantic
@@ -395,7 +395,7 @@ requests==2.32.5
     #   libhxl
     #   multiurl
     #   requests-file
-requests-file==2.1.0
+requests-file==3.0.0
     # via
     #   -c requirements.txt
     #   hdx-python-utilities

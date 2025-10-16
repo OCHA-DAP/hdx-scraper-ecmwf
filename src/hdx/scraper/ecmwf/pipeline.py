@@ -284,8 +284,9 @@ class Pipeline:
             resourcedata = {
                 "name": filename,
                 "description": description,
-                "p_coded": True,
             }
+            if admin_level == "1":
+                resourcedata["p_coded"] = True
             dataset.generate_resource_from_iterable(
                 headers=list(processed_data.columns),
                 iterable=processed_data.to_dict(orient="records"),

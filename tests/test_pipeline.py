@@ -89,7 +89,6 @@ class TestPipeline:
                     {
                         "name": "forecast_precipitation_anomalies_adm0.csv",
                         "description": "Summarized forecast precipitation anomalies data at adm0 from 2024-01-01 to 2025-03-31",
-                        "p_coded": True,
                         "format": "csv",
                     },
                     {
