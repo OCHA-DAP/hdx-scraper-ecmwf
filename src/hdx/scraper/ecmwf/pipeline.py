@@ -5,7 +5,7 @@ import logging
 from calendar import monthrange
 from datetime import datetime
 from os.path import basename, exists, join
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 from zipfile import ZipFile
 
 import numpy as np
@@ -39,27 +39,21 @@ class Pipeline:
         self.raster_data = []
 
     def download_global_boundaries(self) -> None:
-        zip_file_path = self._retriever.download_file(
-            self._configuration["global_boundaries"]
-        )
-        gdb_file_path = join(
-            self._tempdir, basename(zip_file_path).replace("-gdb.zip", ".gdb")
-        )
+        dataset_info = self._configuration["global_boundaries"]
+        dataset = Dataset.read_from_hdx(dataset_info["dataset"])
+        resource = [
+            r for r in dataset.get_resources() if r["name"] == dataset_info["resource"]
+        ]
+        resource = resource[0]
+        zip_file_path = self._retriever.download_file(resource["url"])
+        gdb_file_path = join(self._tempdir, "global_boundaries")
         with ZipFile(zip_file_path, "r") as z:
             z.extractall(gdb_file_path)
+        gdb_file = join(gdb_file_path, "global_admin_boundaries_matched_latest.gdb")
         for admin_level in ["0", "1"]:
-            adm_data = read_file(gdb_file_path, layer=f"adm{admin_level}")
-            adm_data = adm_data.to_crs(epsg=4326)
-            # add admin 0 fields
-            iso_codes = {}
-            country_names = {}
-            country_codes = list(set(adm_data["adm0_pcode"]))
-            for country_code in country_codes:
-                iso_code, country_name = _get_country_info(country_code)
-                iso_codes[country_code] = iso_code
-                country_names[country_code] = country_name
-            adm_data["iso_code"] = adm_data["adm0_pcode"].map(iso_codes)
-            adm_data["adm0_name"] = adm_data["adm0_pcode"].map(country_names)
+            adm_data = read_file(gdb_file, layer=f"admin{admin_level}")
+            # adm_data = adm_data.to_crs(epsg=4326)
+            adm_data.rename(columns={"iso3": "iso_code"}, inplace=True)
             keep_columns = [
                 "iso_code",
                 "adm0_name",
@@ -365,27 +359,11 @@ class Pipeline:
             )
 
 
-def _get_country_info(country_code: str) -> Tuple[str, str]:
-    country_name = None
-    iso_code = None
-    if len(country_code) > 3:
-        country_code = country_code[:2]
-    if len(country_code) == 3:
-        iso_code = country_code
-    if len(country_code) == 2:
-        iso_code = Country.get_iso3_from_iso2(country_code)
-    if iso_code:
-        country_name = Country.get_country_name_from_iso3(iso_code)
-    else:
-        logger.error(f"Unknown country code: {country_code}")
-    return iso_code, country_name
-
-
 def _get_region_info() -> Dict[str, str]:
     region_info = {}
     country_info = Country.countriesdata()["countries"]
     for iso, country in country_info.items():
-        region = country["#region+main+name+preferred"]
+        region = country["Region Name"]
         if not region:
             continue
         region_info[iso] = region

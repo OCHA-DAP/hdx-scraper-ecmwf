@@ -1,5 +1,7 @@
 # Collector specific configuration
-global_boundaries: "https://cod-data.fieldmaps.io/gdb/level-3.gdb.zip"
+global_boundaries:
+  dataset: "cod-ab-global"
+  resource: "global_admin_boundaries_matched_latest.gdb.zip"
 
 cds_url: "https://cds.climate.copernicus.eu/api"
 
