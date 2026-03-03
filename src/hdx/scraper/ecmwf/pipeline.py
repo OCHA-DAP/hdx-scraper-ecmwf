@@ -281,13 +281,12 @@ class Pipeline:
             }
             if admin_level == "1":
                 resourcedata["p_coded"] = True
-            dataset.generate_resource_from_iterable(
-                headers=list(processed_data.columns),
-                iterable=processed_data.to_dict(orient="records"),
-                hxltags={},
+            dataset.generate_resource(
                 folder=self._tempdir,
                 filename=filename,
+                rows=processed_data.to_dict(orient="records"),
                 resourcedata=resourcedata,
+                headers=list(processed_data.columns),
                 encoding="utf-8-sig",
             )
 
