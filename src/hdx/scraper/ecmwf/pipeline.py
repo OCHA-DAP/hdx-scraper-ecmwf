@@ -50,23 +50,24 @@ class Pipeline:
         with ZipFile(zip_file_path, "r") as z:
             z.extractall(gdb_file_path)
         gdb_file = join(gdb_file_path, "global_admin_boundaries_matched_latest.gdb")
-        for admin_level in ["0", "1"]:
-            adm_data = read_file(gdb_file, layer=f"admin{admin_level}")
-            # adm_data = adm_data.to_crs(epsg=4326)
-            adm_data.rename(columns={"iso3": "iso_code"}, inplace=True)
-            keep_columns = [
-                "iso_code",
-                "adm0_name",
-                "adm1_name",
-                "adm1_pcode",
-                "geometry",
-            ]
-            drop_columns = [c for c in adm_data.columns if c not in keep_columns]
-            adm_data.drop(drop_columns, axis=1, inplace=True)
-            adm_data["geometry"] = adm_data["geometry"].simplify(
-                tolerance=0.001, preserve_topology=True
-            )
-            self.global_boundaries[admin_level] = adm_data
+        adm1_data = read_file(gdb_file, layer="admin1")
+        adm1_data.rename(columns={"iso3": "iso_code"}, inplace=True)
+        keep_columns = [
+            "iso_code",
+            "adm0_name",
+            "adm1_name",
+            "adm1_pcode",
+            "geometry",
+        ]
+        drop_columns = [c for c in adm1_data.columns if c not in keep_columns]
+        adm1_data.drop(drop_columns, axis=1, inplace=True)
+        adm1_data["geometry"] = adm1_data["geometry"].simplify(
+            tolerance=0.001, preserve_topology=True
+        )
+        self.global_boundaries["1"] = adm1_data
+        adm0_data = adm1_data.dissolve(by=["iso_code", "adm0_name"], as_index=False)
+        adm0_data.drop(["adm1_name", "adm1_pcode"], axis=1, inplace=True)
+        self.global_boundaries["0"] = adm0_data
         return
 
     def download_cds_data(
