@@ -259,6 +259,7 @@ class Pipeline:
 
         # Add csv resources
         for identifier in self.processed_data:
+            logger.info(f"Adding resource {identifier}")
             admin_level = identifier[3]
             fields = ["iso_code", "adm0_name"]
             if admin_level == "1":
@@ -297,6 +298,7 @@ class Pipeline:
             )
 
         # Add zipped raster resource
+        logger.info("Adding raster resource")
         raster_dates = [
             "_".join(basename(raster).split("_")[2:4]) for raster in self.raster_data
         ]
