@@ -166,7 +166,12 @@ class Pipeline:
                         months=leadtime_month - 1
                     )
                     numdays = monthrange(valid_time.year, valid_time.month)[1]
-                    data = dataset.sel(time=issue_date, forecastMonth=leadtime_month)
+                    if len(issue_dates) > 1:
+                        data = dataset.sel(
+                            time=issue_date, forecastMonth=leadtime_month
+                        )
+                    else:
+                        data = dataset.sel(forecastMonth=leadtime_month)
                     data = data * numdays * 24 * 60 * 60 * 1000
 
                     # save to raster

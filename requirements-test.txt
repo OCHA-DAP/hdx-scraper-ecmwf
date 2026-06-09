@@ -426,7 +426,7 @@ toolz==1.1.0
     #   -c requirements.txt
     #   dask
     #   partd
-tqdm==4.68.1
+tqdm==4.68.2
     # via
     #   -c requirements.txt
     #   cdsapi
