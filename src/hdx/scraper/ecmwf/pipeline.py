@@ -23,6 +23,7 @@ from hdx.utilities.dateparse import iso_string_from_datetime, parse_date
 from hdx.utilities.retriever import Retrieve
 from rasterio import open
 from requests.exceptions import HTTPError
+from shapely.validation import make_valid
 
 logger = logging.getLogger(__name__)
 
@@ -39,35 +40,62 @@ class Pipeline:
         self.raster_data = []
 
     def download_global_boundaries(self) -> None:
-        dataset_info = self._configuration["global_boundaries"]
-        dataset = Dataset.read_from_hdx(dataset_info["dataset"])
-        resource = [
-            r for r in dataset.get_resources() if r["name"] == dataset_info["resource"]
-        ]
-        resource = resource[0]
-        zip_file_path = self._retriever.download_file(resource["url"])
-        gdb_file_path = join(self._tempdir, "global_boundaries")
-        with ZipFile(zip_file_path, "r") as z:
-            z.extractall(gdb_file_path)
-        gdb_file = join(gdb_file_path, "global_admin_boundaries_matched_latest.gdb")
-        adm1_data = read_file(gdb_file, layer="admin1")
-        adm1_data.rename(columns={"iso3": "iso_code"}, inplace=True)
-        keep_columns = [
-            "iso_code",
-            "adm0_name",
-            "adm1_name",
-            "adm1_pcode",
-            "geometry",
-        ]
-        drop_columns = [c for c in adm1_data.columns if c not in keep_columns]
-        adm1_data.drop(drop_columns, axis=1, inplace=True)
-        adm1_data["geometry"] = adm1_data["geometry"].simplify(
-            tolerance=0.001, preserve_topology=True
-        )
-        self.global_boundaries["1"] = adm1_data
-        adm0_data = adm1_data.dissolve(by=["iso_code", "adm0_name"], as_index=False)
-        adm0_data.drop(["adm1_name", "adm1_pcode"], axis=1, inplace=True)
-        self.global_boundaries["0"] = adm0_data
+        for admin_level in ["admin0", "admin1"]:
+            dataset_info = self._configuration["global_boundaries"][admin_level]
+            dataset = Dataset.read_from_hdx(dataset_info["dataset"])
+            resource = [
+                r
+                for r in dataset.get_resources()
+                if r["name"] == dataset_info["resource"]
+            ]
+            resource = resource[0]
+            if admin_level == "admin0":
+                if self._retriever.use_saved:
+                    file_path = self._retriever.download_file(
+                        resource["url"], filename=resource["name"]
+                    )
+                else:
+                    folder = (
+                        self._retriever.saved_dir
+                        if self._retriever.save
+                        else self._tempdir
+                    )
+                    _, file_path = resource.download(folder)
+                adm_data = read_file(file_path)
+                for i, row in adm_data.iterrows():
+                    if not adm_data.geometry[i].is_valid:
+                        adm_data.loc[i, "geometry"] = make_valid(adm_data.geometry[i])
+                    if not pd.isna(row["STATUS"]) and row["STATUS"][:4] == "Adm.":
+                        adm_data.loc[i, "ISO_3"] = row["Color_Code"]
+                adm_data = adm_data.dissolve(by="ISO_3", as_index=False)
+                adm_data.rename(
+                    columns={"ISO_3": "iso_code", "Terr_Name": "adm0_name"},
+                    inplace=True,
+                )
+            else:
+                zip_file_path = self._retriever.download_file(resource["url"])
+                gdb_file_path = join(self._tempdir, "global_boundaries")
+                with ZipFile(zip_file_path, "r") as z:
+                    z.extractall(gdb_file_path)
+                gdb_file = join(
+                    gdb_file_path, "global_admin_boundaries_matched_latest.gdb"
+                )
+                adm_data = read_file(gdb_file, layer="admin1")
+                adm_data.rename(columns={"iso3": "iso_code"}, inplace=True)
+            keep_columns = [
+                "iso_code",
+                "adm0_name",
+                "adm1_name",
+                "adm1_pcode",
+                "geometry",
+            ]
+            drop_columns = [c for c in adm_data.columns if c not in keep_columns]
+            adm_data.drop(drop_columns, axis=1, inplace=True)
+            if admin_level == "admin1":
+                adm_data["geometry"] = adm_data["geometry"].simplify(
+                    tolerance=0.001, preserve_topology=True
+                )
+            self.global_boundaries[admin_level[-1]] = adm_data
         return
 
     def download_cds_data(
