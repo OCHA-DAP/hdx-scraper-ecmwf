@@ -139,6 +139,7 @@ class Pipeline:
         variable = "total_precipitation_anomalous_rate_of_accumulation"
 
         for year in range(self._configuration["min_year"], today.year + 1):
+            logger.info(f"Downloading CDS data for year {year}")
             # create list of missing data that needs to be added
             months = []
             end_month = 12 if year != today.year else today.month
