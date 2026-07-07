@@ -5,7 +5,6 @@ from hdx.utilities.compare import assert_files_same
 from hdx.utilities.downloader import Download
 from hdx.utilities.path import temp_dir
 from hdx.utilities.retriever import Retrieve
-from pyproj.datadir import set_data_dir
 
 from hdx.scraper.ecmwf.pipeline import Pipeline
 
@@ -27,9 +26,6 @@ class TestPipeline:
                     temp_dir=tempdir,
                     save=False,
                     use_saved=True,
-                )
-                set_data_dir(
-                    "/Users/bmills/opt/anaconda3/envs/hdx-scraper-ecmwf/share/proj"
                 )
                 configuration["min_year"] = 2024
                 pipeline = Pipeline(configuration, retriever, tempdir)
