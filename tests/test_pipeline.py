@@ -5,6 +5,7 @@ from hdx.utilities.compare import assert_files_same
 from hdx.utilities.downloader import Download
 from hdx.utilities.path import temp_dir
 from hdx.utilities.retriever import Retrieve
+from pyproj.datadir import set_data_dir
 
 from hdx.scraper.ecmwf.pipeline import Pipeline
 
@@ -27,6 +28,9 @@ class TestPipeline:
                     save=False,
                     use_saved=True,
                 )
+                set_data_dir(
+                    "/Users/bmills/opt/anaconda3/envs/hdx-scraper-ecmwf/share/proj"
+                )
                 configuration["min_year"] = 2024
                 pipeline = Pipeline(configuration, retriever, tempdir)
                 today = datetime(2025, 3, 15)
@@ -35,7 +39,7 @@ class TestPipeline:
                 )
                 assert updated is True
 
-                pipeline.download_global_boundaries()
+                pipeline.download_global_boundaries(cache_boundaries=True, test=True)
                 pipeline.process(today)
                 dataset = pipeline.generate_dataset()
                 dataset.update_from_yaml(
@@ -104,6 +108,12 @@ class TestPipeline:
                         "format": "csv",
                     },
                     {
+                        "name": "forecast_precipitation_anomalies_adm1_americas.csv",
+                        "description": "Summarized forecast precipitation anomalies data at adm1 from 2024-01-01 to 2025-03-31 for Americas",
+                        "p_coded": True,
+                        "format": "csv",
+                    },
+                    {
                         "name": "forecast_precipitation_anomalies_geotiff_2025_03.zip",
                         "description": "Latest forecast precipitation anomalies raster data from 2025-03",
                         "format": "geotiff",
@@ -128,4 +138,11 @@ class TestPipeline:
                         fixtures_dir, "forecast_precipitation_anomalies_adm1_asia.csv"
                     ),
                     join(tempdir, "forecast_precipitation_anomalies_adm1_asia.csv"),
+                )
+                assert_files_same(
+                    join(
+                        fixtures_dir,
+                        "forecast_precipitation_anomalies_adm1_americas.csv",
+                    ),
+                    join(tempdir, "forecast_precipitation_anomalies_adm1_americas.csv"),
                 )

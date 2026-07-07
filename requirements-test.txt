@@ -34,7 +34,7 @@ certifi==2026.6.17
     #   pyproj
     #   rasterio
     #   requests
-cffi==2.0.0
+cffi==2.1.0
     # via
     #   -c requirements.txt
     #   eccodes
@@ -46,7 +46,7 @@ chardet==7.4.3
     # via
     #   -c requirements.txt
     #   frictionless
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
     # via
     #   -c requirements.txt
     #   requests
@@ -54,7 +54,7 @@ ckanapi==4.11
     # via
     #   -c requirements.txt
     #   hdx-python-api
-click==8.4.1
+click==8.4.2
     # via
     #   -c requirements.txt
     #   cfgrib
@@ -69,9 +69,9 @@ cloudpickle==3.1.2
     # via
     #   -c requirements.txt
     #   dask
-coverage==7.14.1
+coverage==7.15.0
     # via pytest-cov
-dask==2026.6.0
+dask==2026.7.0
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
@@ -95,11 +95,11 @@ eccodes==2.47.0
     # via
     #   -c requirements.txt
     #   cfgrib
-eccodeslib==2.47.1.20
+eccodeslib==2.47.3.22
     # via
     #   -c requirements.txt
     #   eccodes
-eckitlib==2.0.7.20
+eckitlib==2.1.0.22
     # via
     #   -c requirements.txt
     #   eccodeslib
@@ -131,7 +131,7 @@ fsspec==2026.6.0
     # via
     #   -c requirements.txt
     #   dask
-geopandas==1.1.3
+geopandas==1.1.4
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
@@ -150,7 +150,7 @@ hdx-python-utilities==4.1.2
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   hdx-python-api
     #   hdx-python-country
-humanize==4.15.0
+humanize==4.16.0
     # via
     #   -c requirements.txt
     #   frictionless
@@ -159,7 +159,7 @@ idna==3.18
     #   -c requirements.txt
     #   email-validator
     #   requests
-ijson==3.5.0
+ijson==3.5.1
     # via
     #   -c requirements.txt
     #   hdx-python-utilities
@@ -214,11 +214,11 @@ mdurl==0.1.2
     # via
     #   -c requirements.txt
     #   markdown-it-py
-multiurl==0.3.8
+multiurl==0.3.9
     # via
     #   -c requirements.txt
     #   ecmwf-datastores-client
-numpy==2.4.6
+numpy==2.5.1
     # via
     #   -c requirements.txt
     #   cfgrib
@@ -282,7 +282,7 @@ pygments==2.20.0
     #   -c requirements.txt
     #   pytest
     #   rich
-pyogrio==0.12.1
+pyogrio==0.13.0
     # via
     #   -c requirements.txt
     #   geopandas
@@ -299,7 +299,7 @@ pyproj==3.7.2
     #   -c requirements.txt
     #   geopandas
     #   rioxarray
-pytest==9.1.0
+pytest==9.1.1
     # via
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   pytest-cov
@@ -366,7 +366,7 @@ rioxarray==0.22.0
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
-rpds-py==2026.5.1
+rpds-py==2026.6.3
     # via
     #   -c requirements.txt
     #   jsonschema
@@ -375,7 +375,7 @@ ruamel-yaml==0.19.1
     # via
     #   -c requirements.txt
     #   hdx-python-utilities
-setuptools==82.0.1
+setuptools==83.0.0
     # via
     #   -c requirements.txt
     #   ckanapi
@@ -426,16 +426,16 @@ toolz==1.1.0
     #   -c requirements.txt
     #   dask
     #   partd
-tqdm==4.68.3
+tqdm==4.68.4
     # via
     #   -c requirements.txt
     #   cdsapi
     #   multiurl
-typer==0.26.7
+typer==0.26.8
     # via
     #   -c requirements.txt
     #   frictionless
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via
     #   -c requirements.txt
     #   ecmwf-datastores-client

@@ -4,8 +4,7 @@ global_boundaries:
     dataset: "unmap-international-boundaries-geojson"
     resource: "wrl_polbnda_int_15m_uncs.geojson"
   admin1:
-    dataset: "cod-ab-global"
-    resource: "global_admin_boundaries_matched_latest.gdb.zip"
+    metadata: "https://data.fieldmaps.io/cod.json"
 
 cds_url: "https://cds.climate.copernicus.eu/api"
 
