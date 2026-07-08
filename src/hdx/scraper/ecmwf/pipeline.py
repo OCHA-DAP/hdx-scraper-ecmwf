@@ -5,6 +5,7 @@ import logging
 from calendar import monthrange
 from datetime import datetime
 from os.path import basename, exists, join
+from pathlib import Path
 from typing import Dict, Optional
 from zipfile import ZipFile
 
@@ -14,15 +15,17 @@ import xarray as xr
 from cdsapi import Client
 from dateutil.relativedelta import relativedelta
 from exactextract import exact_extract
-from geopandas import read_file
+from geopandas import clip, read_file
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.data.resource import Resource
 from hdx.location.country import Country
 from hdx.utilities.dateparse import iso_string_from_datetime, parse_date
+from hdx.utilities.path import script_dir_plus_file
 from hdx.utilities.retriever import Retrieve
 from rasterio import open
 from requests.exceptions import HTTPError
+from shapely.validation import make_valid
 
 logger = logging.getLogger(__name__)
 
@@ -38,35 +41,89 @@ class Pipeline:
         self.processed_data = {}
         self.raster_data = []
 
-    def download_global_boundaries(self) -> None:
-        dataset_info = self._configuration["global_boundaries"]
+    def download_global_boundaries(
+        self, cache_boundaries: bool = False, test: bool = False
+    ) -> None:
+        # download admin 0 boundaries
+        dataset_info = self._configuration["global_boundaries"]["admin0"]
         dataset = Dataset.read_from_hdx(dataset_info["dataset"])
         resource = [
             r for r in dataset.get_resources() if r["name"] == dataset_info["resource"]
         ]
         resource = resource[0]
-        zip_file_path = self._retriever.download_file(resource["url"])
-        gdb_file_path = join(self._tempdir, "global_boundaries")
-        with ZipFile(zip_file_path, "r") as z:
-            z.extractall(gdb_file_path)
-        gdb_file = join(gdb_file_path, "global_admin_boundaries_matched_latest.gdb")
-        for admin_level in ["0", "1"]:
-            adm_data = read_file(gdb_file, layer=f"admin{admin_level}")
-            # adm_data = adm_data.to_crs(epsg=4326)
-            adm_data.rename(columns={"iso3": "iso_code"}, inplace=True)
-            keep_columns = [
-                "iso_code",
-                "adm0_name",
-                "adm1_name",
-                "adm1_pcode",
-                "geometry",
-            ]
-            drop_columns = [c for c in adm_data.columns if c not in keep_columns]
-            adm_data.drop(drop_columns, axis=1, inplace=True)
-            adm_data["geometry"] = adm_data["geometry"].simplify(
-                tolerance=0.001, preserve_topology=True
+        if self._retriever.use_saved:
+            file_path = self._retriever.download_file(
+                resource["url"], filename=resource["name"]
             )
-            self.global_boundaries[admin_level] = adm_data
+        else:
+            folder = (
+                self._retriever.saved_dir if self._retriever.save else self._tempdir
+            )
+            _, file_path = resource.download(folder)
+        adm0_data = read_file(file_path)
+        for i, row in adm0_data.iterrows():
+            if not adm0_data.geometry[i].is_valid:
+                adm0_data.loc[i, "geometry"] = make_valid(adm0_data.geometry[i])
+            if not pd.isna(row["STATUS"]) and row["STATUS"][:4] == "Adm.":
+                adm0_data.loc[i, "ISO_3"] = row["Color_Code"]
+        adm0_data = adm0_data.dissolve(by="ISO_3", as_index=False)
+        adm0_data.rename(
+            columns={"ISO_3": "iso_code", "Terr_Name": "adm0_name"},
+            inplace=True,
+        )
+        keep_columns = [
+            "iso_code",
+            "adm0_name",
+            "adm1_name",
+            "adm1_pcode",
+            "geometry",
+        ]
+        drop_columns = [c for c in adm0_data.columns if c not in keep_columns]
+        adm0_data.drop(drop_columns, axis=1, inplace=True)
+        self.global_boundaries["0"] = adm0_data
+
+        # download admin 1 boundaries
+        adm1_path = script_dir_plus_file(
+            join("boundaries", "admin1_boundaries.geojson"), Pipeline
+        )
+        if cache_boundaries:
+            country_boundaries = []
+            metadata = self._retriever.download_json(
+                self._configuration["global_boundaries"]["admin1"]["metadata"]
+            )
+            for entry in metadata:
+                iso = entry["iso_3"]
+                download_url = entry.get("e_gpkg")
+                if not download_url:
+                    continue
+                file_path = self._retriever.download_file(download_url)
+                with ZipFile(file_path, "r") as z:
+                    z.extractall(join(self._tempdir, iso))
+                gpkg_path = [p for p in Path(join(self._tempdir, iso)).iterdir()][0]
+                adm_data = read_file(gpkg_path)
+                adm1_data = adm_data.dissolve(
+                    by=["adm1_name", "adm1_src", "adm0_name", "adm0_src"],
+                    as_index=False,
+                )
+                adm1_data.rename(
+                    columns={"adm1_src": "adm1_pcode", "adm0_src": "adm0_pcode"},
+                    inplace=True,
+                )
+                adm1_data["iso_code"] = iso
+                drop_columns = [c for c in adm1_data.columns if c not in keep_columns]
+                adm1_data.drop(drop_columns, axis=1, inplace=True)
+                adm1_data["geometry"] = adm1_data["geometry"].simplify(
+                    tolerance=0.001, preserve_topology=True
+                )
+                country_outline = adm0_data[adm0_data["iso_code"] == iso]
+                adm1_data = clip(adm1_data, country_outline)
+                country_boundaries.append(adm1_data)
+            adm1_data = pd.concat(country_boundaries)
+            if not test:
+                adm1_data.to_file(adm1_path, driver="GeoJSON")
+        else:
+            adm1_data = read_file(adm1_path)
+        self.global_boundaries["1"] = adm1_data
         return
 
     def download_cds_data(
@@ -82,6 +139,7 @@ class Pipeline:
         variable = "total_precipitation_anomalous_rate_of_accumulation"
 
         for year in range(self._configuration["min_year"], today.year + 1):
+            logger.info(f"Downloading CDS data for year {year}")
             # create list of missing data that needs to be added
             months = []
             end_month = 12 if year != today.year else today.month
@@ -165,7 +223,12 @@ class Pipeline:
                         months=leadtime_month - 1
                     )
                     numdays = monthrange(valid_time.year, valid_time.month)[1]
-                    data = dataset.sel(time=issue_date, forecastMonth=leadtime_month)
+                    if len(issue_dates) > 1:
+                        data = dataset.sel(
+                            time=issue_date, forecastMonth=leadtime_month
+                        )
+                    else:
+                        data = dataset.sel(forecastMonth=leadtime_month)
                     data = data * numdays * 24 * 60 * 60 * 1000
 
                     # save to raster
@@ -253,6 +316,7 @@ class Pipeline:
 
         # Add csv resources
         for identifier in self.processed_data:
+            logger.info(f"Adding resource {identifier}")
             admin_level = identifier[3]
             fields = ["iso_code", "adm0_name"]
             if admin_level == "1":
@@ -291,6 +355,7 @@ class Pipeline:
             )
 
         # Add zipped raster resource
+        logger.info("Adding raster resource")
         raster_dates = [
             "_".join(basename(raster).split("_")[2:4]) for raster in self.raster_data
         ]

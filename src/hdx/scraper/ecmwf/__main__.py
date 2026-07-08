@@ -29,6 +29,7 @@ _LOOKUP = "hdx-scraper-ecmwf"
 _SAVED_DATA_DIR = "saved_data"  # Keep in repo to avoid deletion in /tmp
 _UPDATED_BY_SCRIPT = "HDX Scraper: ECMWF"
 _FORCE_REFRESH = False
+_CACHE_BOUNDARIES = False
 
 
 def main(
@@ -68,7 +69,7 @@ def main(
                 logger.info("Data has not been updated")
                 return
 
-            pipeline.download_global_boundaries()
+            pipeline.download_global_boundaries(_CACHE_BOUNDARIES)
             pipeline.process(today)
             dataset = pipeline.generate_dataset()
             dataset.update_from_yaml(

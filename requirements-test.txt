@@ -12,7 +12,7 @@ annotated-types==0.7.0
     # via
     #   -c requirements.txt
     #   pydantic
-attrs==25.4.0
+attrs==26.1.0
     # via
     #   -c requirements.txt
     #   cfgrib
@@ -27,14 +27,14 @@ cdsapi==0.7.7
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
-certifi==2026.2.25
+certifi==2026.6.17
     # via
     #   -c requirements.txt
     #   pyogrio
     #   pyproj
     #   rasterio
     #   requests
-cffi==2.0.0
+cffi==2.1.0
     # via
     #   -c requirements.txt
     #   eccodes
@@ -42,26 +42,25 @@ cfgrib==0.9.15.1
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
-chardet==6.0.0.post1
+chardet==7.4.3
     # via
     #   -c requirements.txt
     #   frictionless
-charset-normalizer==3.4.4
+charset-normalizer==3.4.9
     # via
     #   -c requirements.txt
     #   requests
-ckanapi==4.9
+ckanapi==4.11
     # via
     #   -c requirements.txt
     #   hdx-python-api
-click==8.3.1
+click==8.4.2
     # via
     #   -c requirements.txt
     #   cfgrib
     #   cligj
     #   dask
     #   rasterio
-    #   typer
 cligj==0.7.2
     # via
     #   -c requirements.txt
@@ -70,9 +69,9 @@ cloudpickle==3.1.2
     # via
     #   -c requirements.txt
     #   dask
-coverage==7.13.4
+coverage==7.15.0
     # via pytest-cov
-dask==2026.1.2
+dask==2026.7.0
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
@@ -88,24 +87,23 @@ docopt==0.6.2
     # via
     #   -c requirements.txt
     #   ckanapi
-docutils==0.22.4
+docutils==0.23
     # via
     #   -c requirements.txt
     #   defopt
-eccodes==2.46.0
+eccodes==2.47.0
     # via
     #   -c requirements.txt
     #   cfgrib
-eccodeslib==2.46.0.13
+eccodeslib==2.47.3.22
     # via
     #   -c requirements.txt
     #   eccodes
-eckitlib==2.0.1.13
+eckitlib==2.1.0.22
     # via
     #   -c requirements.txt
     #   eccodeslib
-    #   fckitlib
-ecmwf-datastores-client==0.4.2
+ecmwf-datastores-client==0.5.1
     # via
     #   -c requirements.txt
     #   cdsapi
@@ -121,27 +119,23 @@ exactextract==0.3.0
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
-fckitlib==0.14.2.13
-    # via
-    #   -c requirements.txt
-    #   eccodeslib
 findlibs==0.1.2
     # via
     #   -c requirements.txt
     #   eccodes
-frictionless==5.18.1
+frictionless==5.19.0
     # via
     #   -c requirements.txt
     #   hdx-python-utilities
-fsspec==2026.2.0
+fsspec==2026.6.0
     # via
     #   -c requirements.txt
     #   dask
-geopandas==1.1.2
+geopandas==1.1.4
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
-hdx-python-api==6.6.5
+hdx-python-api==6.6.8
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
@@ -150,22 +144,22 @@ hdx-python-country==4.1.1
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   hdx-python-api
-hdx-python-utilities==4.0.8
+hdx-python-utilities==4.1.2
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   hdx-python-api
     #   hdx-python-country
-humanize==4.15.0
+humanize==4.16.0
     # via
     #   -c requirements.txt
     #   frictionless
-idna==3.11
+idna==3.18
     # via
     #   -c requirements.txt
     #   email-validator
     #   requests
-ijson==3.5.0
+ijson==3.5.1
     # via
     #   -c requirements.txt
     #   hdx-python-utilities
@@ -204,11 +198,11 @@ makefun==1.16.0
     # via
     #   -c requirements.txt
     #   hdx-python-api
-markdown-it-py==4.0.0
+markdown-it-py==4.2.0
     # via
     #   -c requirements.txt
     #   rich
-marko==2.2.2
+marko==2.2.3
     # via
     #   -c requirements.txt
     #   frictionless
@@ -220,11 +214,11 @@ mdurl==0.1.2
     # via
     #   -c requirements.txt
     #   markdown-it-py
-multiurl==0.3.7
+multiurl==0.3.9
     # via
     #   -c requirements.txt
     #   ecmwf-datastores-client
-numpy==2.4.2
+numpy==2.5.1
     # via
     #   -c requirements.txt
     #   cfgrib
@@ -241,7 +235,7 @@ openpyxl==3.1.5
     # via
     #   -c requirements.txt
     #   hdx-python-utilities
-packaging==26.0
+packaging==26.2
     # via
     #   -c requirements.txt
     #   dask
@@ -250,7 +244,7 @@ packaging==26.0
     #   pytest
     #   rioxarray
     #   xarray
-pandas==3.0.1
+pandas==3.0.3
     # via
     #   -c requirements.txt
     #   geopandas
@@ -259,7 +253,7 @@ partd==1.4.2
     # via
     #   -c requirements.txt
     #   dask
-petl==1.7.17
+petl==1.7.19
     # via
     #   -c requirements.txt
     #   frictionless
@@ -275,20 +269,20 @@ pycparser==3.0
     # via
     #   -c requirements.txt
     #   cffi
-pydantic==2.12.5
+pydantic==2.13.4
     # via
     #   -c requirements.txt
     #   frictionless
-pydantic-core==2.41.5
+pydantic-core==2.46.4
     # via
     #   -c requirements.txt
     #   pydantic
-pygments==2.19.2
+pygments==2.20.0
     # via
     #   -c requirements.txt
     #   pytest
     #   rich
-pyogrio==0.12.1
+pyogrio==0.13.0
     # via
     #   -c requirements.txt
     #   geopandas
@@ -305,11 +299,11 @@ pyproj==3.7.2
     #   -c requirements.txt
     #   geopandas
     #   rioxarray
-pytest==9.0.2
+pytest==9.1.1
     # via
     #   hdx-scraper-ecmwf (pyproject.toml)
     #   pytest-cov
-pytest-cov==7.0.0
+pytest-cov==7.1.0
     # via hdx-scraper-ecmwf (pyproject.toml)
 python-dateutil==2.9.0.post0
     # via
@@ -323,7 +317,7 @@ python-slugify==8.0.4
     #   -c requirements.txt
     #   ckanapi
     #   frictionless
-pytz==2025.2
+pytz==2026.2
     # via
     #   -c requirements.txt
     #   multiurl
@@ -346,7 +340,7 @@ referencing==0.37.0
     #   -c requirements.txt
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.5
+requests==2.34.2
     # via
     #   -c requirements.txt
     #   cdsapi
@@ -364,15 +358,15 @@ rfc3986==2.0.0
     # via
     #   -c requirements.txt
     #   frictionless
-rich==14.3.3
+rich==15.0.0
     # via
     #   -c requirements.txt
     #   typer
-rioxarray==0.21.0
+rioxarray==0.22.0
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
-rpds-py==0.30.0
+rpds-py==2026.6.3
     # via
     #   -c requirements.txt
     #   jsonschema
@@ -381,7 +375,7 @@ ruamel-yaml==0.19.1
     # via
     #   -c requirements.txt
     #   hdx-python-utilities
-setuptools==82.0.0
+setuptools==83.0.0
     # via
     #   -c requirements.txt
     #   ckanapi
@@ -393,18 +387,17 @@ shellingham==1.5.4
     # via
     #   -c requirements.txt
     #   typer
-simpleeval==1.0.3
+simpleeval==1.0.7
     # via
     #   -c requirements.txt
     #   frictionless
-simplejson==3.20.2
+simplejson==4.1.1
     # via
     #   -c requirements.txt
     #   ckanapi
 six==1.17.0
     # via
     #   -c requirements.txt
-    #   ckanapi
     #   pockets
     #   python-dateutil
     #   sphinxcontrib-napoleon
@@ -416,7 +409,7 @@ tableschema-to-template==0.0.13
     # via
     #   -c requirements.txt
     #   hdx-python-utilities
-tabulate==0.9.0
+tabulate==0.10.0
     # via
     #   -c requirements.txt
     #   frictionless
@@ -433,16 +426,16 @@ toolz==1.1.0
     #   -c requirements.txt
     #   dask
     #   partd
-tqdm==4.67.3
+tqdm==4.68.4
     # via
     #   -c requirements.txt
     #   cdsapi
     #   multiurl
-typer==0.24.1
+typer==0.26.8
     # via
     #   -c requirements.txt
     #   frictionless
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via
     #   -c requirements.txt
     #   ecmwf-datastores-client
@@ -459,7 +452,7 @@ unidecode==1.4.0
     # via
     #   -c requirements.txt
     #   pyphonetics
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   -c requirements.txt
     #   requests
@@ -467,7 +460,7 @@ validators==0.35.0
     # via
     #   -c requirements.txt
     #   frictionless
-xarray==2025.11.0
+xarray==2026.4.0
     # via
     #   -c requirements.txt
     #   hdx-scraper-ecmwf (pyproject.toml)
@@ -476,7 +469,7 @@ xlrd==2.0.2
     # via
     #   -c requirements.txt
     #   hdx-python-utilities
-xlsx2csv==0.8.6
+xlsx2csv==0.8.4
     # via
     #   -c requirements.txt
     #   hdx-python-utilities
